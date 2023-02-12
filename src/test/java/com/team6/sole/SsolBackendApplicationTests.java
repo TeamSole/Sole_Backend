@@ -8,6 +8,7 @@ class SsolBackendApplicationTests {
 
 	@Test
 	void contextLoads() {
+
 	}
 
 }
