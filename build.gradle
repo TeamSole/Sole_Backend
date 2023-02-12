@@ -45,7 +45,7 @@ dependencies {
 	implementation group: 'org.json', name: 'json', version: '20220320'
 
 	// redis
-	/*implementation 'org.springframework.boot:spring-boot-starter-data-redis'*/
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
 	//stringUtils
 	implementation 'org.apache.commons:commons-lang3:3.12.0'
