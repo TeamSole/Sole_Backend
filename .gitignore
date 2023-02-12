@@ -38,3 +38,5 @@ out/
 
 # dotoenv
 /src/main/resources/application.yml
+
+src/test/java/com/team6/sole/SsolBackendApplicationTests.java
