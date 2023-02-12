@@ -1,0 +1,12 @@
+server:
+  port: 8090
+
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:8000/sole
+    username: jimin
+    password: simon1126
