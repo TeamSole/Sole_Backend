@@ -107,6 +107,12 @@ public class MemberService {
         return new ResponseEntity<>(CommonApiResponse.of(tokenResponseDto), httpHeaders, HttpStatus.OK);
     }
 
+    // 닉네임 중복 검사
+    @Transactional(readOnly = true)
+    public Boolean duplicateNickname(String nickname) {
+        return memberRepository.existsByNickname(nickname);
+    }
+
     public KakaoUserDto getKakaoUser(String accessToken) {
         String getUserURL = "https://kapi.kakao.com/v2/user/me";
 
