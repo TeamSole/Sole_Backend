@@ -50,6 +50,22 @@ public class AwsS3ServiceImpl implements AwsS3Service {
         return fileNameList;
     }
 
+    public String uploadImage(MultipartFile multipartFile, String dirName) {
+        String fileName = createFileName(multipartFile.getOriginalFilename(), dirName);
+        ObjectMetadata objectMetadata = new ObjectMetadata();
+        objectMetadata.setContentLength(multipartFile.getSize());
+        objectMetadata.setContentType(multipartFile.getContentType());
+
+        try(InputStream inputStream = multipartFile.getInputStream()) {
+            amazonS3.putObject(new PutObjectRequest(bucket, fileName, inputStream, objectMetadata)
+                    .withCannedAcl(CannedAccessControlList.PublicRead));
+        } catch(IOException e) {
+            throw new InternalServerException(ErrorCode.FILE_UPLOAD_FAILED);
+        }
+
+        return amazonS3.getUrl(bucket, fileName).toString();
+    }
+
     public void deleteImage(String fileName) {
         amazonS3.deleteObject(new DeleteObjectRequest(bucket, fileName));
     }
