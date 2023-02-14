@@ -34,7 +34,7 @@ dependencies {
 	// 스웨거, spring security
 	implementation 'io.springfox:springfox-boot-starter:3.0.0'
 	implementation group: 'io.springfox', name: 'springfox-swagger-ui', version: '3.0.0'
-	/*implementation 'org.springframework.boot:spring-boot-starter-security'*/
+	implementation 'org.springframework.boot:spring-boot-starter-security'
 
 	// jwt
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.2'
