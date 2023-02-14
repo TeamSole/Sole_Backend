@@ -20,4 +20,6 @@ public interface AwsS3Service {
      * @param fileName 디렉토리 경로를 포함한 파일명
      * */
     void deleteImage(String fileName);
+
+    String uploadImage(MultipartFile multipartFile, String dirName);
 }
