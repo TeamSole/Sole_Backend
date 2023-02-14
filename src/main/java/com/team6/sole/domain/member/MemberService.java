@@ -82,6 +82,31 @@ public class MemberService {
         }
     }
 
+    // 토큰 재발급
+    @Transactional
+    public ResponseEntity<CommonApiResponse<TokenResponseDto>> reissue(String accessToken, String refreshToken) {
+        String email;
+
+        if (!tokenProvider.validateTokenExceptExpiration(accessToken)){
+            throw new BadRequestException(ErrorCode.INVALID_ACCESS_TOKEN);
+        }
+
+        try {
+            email = tokenProvider.parseClaims(accessToken).getSubject();
+        } catch (Exception e) {
+            throw new BadRequestException(ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        tokenProvider.validateRefreshToken(email, refreshToken);
+
+        TokenResponseDto tokenResponseDto = tokenProvider.generateToken(email);
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add("Authorization", "Bearer " + tokenResponseDto.getAccessToken());
+
+        return new ResponseEntity<>(CommonApiResponse.of(tokenResponseDto), httpHeaders, HttpStatus.OK);
+    }
+
     public KakaoUserDto getKakaoUser(String accessToken) {
         String getUserURL = "https://kapi.kakao.com/v2/user/me";
 

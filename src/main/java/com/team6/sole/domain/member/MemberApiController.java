@@ -4,6 +4,7 @@ import com.team6.sole.domain.member.dto.MemberRequestDto;
 import com.team6.sole.domain.member.dto.MemberResponseDto;
 import com.team6.sole.domain.member.dto.OauthRequest;
 import com.team6.sole.global.config.CommonApiResponse;
+import com.team6.sole.global.config.security.dto.TokenResponseDto;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -26,5 +27,13 @@ public class MemberApiController {
             @RequestPart(required = false) MemberRequestDto memberRequestDto,
             @RequestPart(required = false) MultipartFile multipartFile) {
         return memberService.makeMember(provider, oauthRequest, memberRequestDto, multipartFile);
+    }
+
+    @PostMapping("reissue")
+    @ApiOperation(value = "토큰 재발급")
+    public ResponseEntity<CommonApiResponse<TokenResponseDto>> reissue(
+            @RequestHeader("Authorization") String accessToken,
+            @RequestHeader("Refresh") String refreshToken) {
+        return memberService.reissue(accessToken, refreshToken);
     }
 }
