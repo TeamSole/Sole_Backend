@@ -1,6 +1,5 @@
 package com.team6.sole.domain.member;
 
-import com.amazonaws.Response;
 import com.team6.sole.domain.member.dto.DuplicateNickname;
 import com.team6.sole.domain.member.dto.MemberRequestDto;
 import com.team6.sole.domain.member.dto.MemberResponseDto;
