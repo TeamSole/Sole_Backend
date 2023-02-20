@@ -2,6 +2,7 @@ package com.team6.sole.global.config.security;
 
 import com.team6.sole.domain.member.MemberRepository;
 import com.team6.sole.domain.member.entity.Member;
+import com.team6.sole.domain.member.model.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -29,12 +30,12 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     private User createUser(Member member) {
-        return new User(member.getEmail(), member.getPassword(), authorities());
+        return new User(member.getEmail(), member.getPassword(), authorities(member.getRole()));
     }
 
-    private static Collection<? extends GrantedAuthority> authorities() {
+    private static Collection<? extends GrantedAuthority> authorities(Role userRole) {
         Collection<GrantedAuthority> role = new ArrayList<>();
-        role.add(new SimpleGrantedAuthority("ROLE_USER"));
+        role.add(new SimpleGrantedAuthority(userRole.name()));
         return role;
     }
 }
