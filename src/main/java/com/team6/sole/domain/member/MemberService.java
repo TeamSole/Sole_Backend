@@ -6,6 +6,7 @@ import com.team6.sole.domain.member.dto.MemberResponseDto;
 import com.team6.sole.domain.member.dto.OauthRequest;
 import com.team6.sole.domain.member.entity.Accept;
 import com.team6.sole.domain.member.entity.Member;
+import com.team6.sole.domain.member.model.Role;
 import com.team6.sole.domain.member.model.Social;
 import com.team6.sole.global.config.CommonApiResponse;
 import com.team6.sole.global.config.s3.AwsS3ServiceImpl;
@@ -45,6 +46,7 @@ public class MemberService {
 
         if (provider.equals("kakao")) {
             email = getKakaoUser(oauthRequest.getAccessToken()).getKakaoAccount().getEmail();
+            log.info(email);
             social = Social.KAKAO;
         }
         Optional<Member> checkMember = memberRepository.findByEmailAndSocial(email, social);
@@ -70,6 +72,7 @@ public class MemberService {
                     .password(passwordEncoder.encode("social"))
                     .nickname(memberRequestDto.getNickname())
                     .social(social)
+                    .role(Role.ROLE_USER)
                     .profileImgUrl(
                             multipartFile == null
                                     ? null

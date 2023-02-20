@@ -2,6 +2,7 @@ package com.team6.sole.domain.member.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.team6.sole.domain.member.entity.Member;
+import com.team6.sole.domain.member.model.Role;
 import com.team6.sole.domain.member.model.Social;
 import com.team6.sole.global.config.security.dto.TokenResponseDto;
 import lombok.*;
@@ -21,19 +22,22 @@ public class MemberResponseDto {
 
     private Social social;
 
+    private Role role;
+
     private String accessToken;
 
     private String refreshToken;
 
     @Builder
     public MemberResponseDto(Long memberId, String email, String nickname,
-                             String profileImgUrl, Social social,
+                             String profileImgUrl, Social social, Role role,
                              String accessToken, String refreshToken) {
         this.memberId = memberId;
         this.email = email;
         this.nickname = nickname;
         this.profileImgUrl = profileImgUrl;
         this.social = social;
+        this.role = role;
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
     }
@@ -45,6 +49,7 @@ public class MemberResponseDto {
                 .nickname(member.getNickname())
                 .profileImgUrl(member.getProfileImgUrl())
                 .social(member.getSocial())
+                .role(member.getRole())
                 .build();
     }
 
@@ -55,6 +60,7 @@ public class MemberResponseDto {
                 .nickname(member.getNickname())
                 .profileImgUrl(member.getProfileImgUrl())
                 .social(member.getSocial())
+                .role(member.getRole())
                 .accessToken(tokenResponseDto.getAccessToken())
                 .refreshToken(tokenResponseDto.getRefreshToken())
                 .build();
