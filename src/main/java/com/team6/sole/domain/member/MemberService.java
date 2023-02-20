@@ -45,6 +45,7 @@ public class MemberService {
 
         if (provider.equals("kakao")) {
             email = getKakaoUser(oauthRequest.getAccessToken()).getKakaoAccount().getEmail();
+            log.info(email);
             social = Social.KAKAO;
         }
         Optional<Member> checkMember = memberRepository.findByEmailAndSocial(email, social);
