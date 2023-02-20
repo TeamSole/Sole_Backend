@@ -1,5 +1,6 @@
 package com.team6.sole.domain.member;
 
+import com.team6.sole.domain.member.dto.DuplicateNickname;
 import com.team6.sole.domain.member.dto.MemberRequestDto;
 import com.team6.sole.domain.member.dto.MemberResponseDto;
 import com.team6.sole.domain.member.dto.OauthRequest;
@@ -35,5 +36,11 @@ public class MemberApiController {
             @RequestHeader("Authorization") String accessToken,
             @RequestHeader("Refresh") String refreshToken) {
         return memberService.reissue(accessToken, refreshToken);
+    }
+
+    @PostMapping("nickname")
+    @ApiOperation(value = "닉네임 중복 체크")
+    public ResponseEntity<Boolean> duplicateNickname(@RequestBody DuplicateNickname duplicateNickname) {
+        return ResponseEntity.ok(memberService.duplicateNickname(duplicateNickname.getNickname()));
     }
 }

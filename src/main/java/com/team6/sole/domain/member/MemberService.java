@@ -14,6 +14,7 @@ import com.team6.sole.global.config.security.jwt.TokenProvider;
 import com.team6.sole.global.error.ErrorCode;
 import com.team6.sole.global.error.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +28,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MemberService {
     private final MemberRepository memberRepository;
     private final AcceptRepository acceptRepository;
@@ -51,6 +53,8 @@ public class MemberService {
             HttpHeaders httpHeaders = new HttpHeaders();
             TokenResponseDto tokenResponseDTO = tokenProvider.generateToken(email);
             httpHeaders.add("Authorization", "Bearer " + tokenResponseDTO.getAccessToken());
+
+            log.info("로그인 성공");
 
             return new ResponseEntity<>(CommonApiResponse.of(MemberResponseDto.of(checkMember.get(), tokenResponseDTO)), httpHeaders, HttpStatus.OK);
         } else {
@@ -77,6 +81,8 @@ public class MemberService {
             HttpHeaders httpHeaders = new HttpHeaders();
             TokenResponseDto tokenResponseDTO = tokenProvider.generateToken(email);
             httpHeaders.add("Authorization", "Bearer " + tokenResponseDTO.getAccessToken());
+
+            log.info("회원가입 성공");
 
             return new ResponseEntity<>(CommonApiResponse.of(MemberResponseDto.of(member, tokenResponseDTO)), httpHeaders, HttpStatus.OK);
         }
@@ -105,6 +111,12 @@ public class MemberService {
         httpHeaders.add("Authorization", "Bearer " + tokenResponseDto.getAccessToken());
 
         return new ResponseEntity<>(CommonApiResponse.of(tokenResponseDto), httpHeaders, HttpStatus.OK);
+    }
+
+    // 닉네임 중복 검사
+    @Transactional(readOnly = true)
+    public Boolean duplicateNickname(String nickname) {
+        return memberRepository.existsByNickname(nickname);
     }
 
     public KakaoUserDto getKakaoUser(String accessToken) {
