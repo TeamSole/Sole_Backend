@@ -38,9 +38,9 @@ public class MemberService {
     private final TokenProvider tokenProvider;
     private final WebClient webClient;
 
-    // 회원가입 및 로그인(소셜)
+    // 회원체크 및 로그인(소셜)
     @Transactional
-    public ResponseEntity<CommonApiResponse<MemberResponseDto>> makeMember(String provider, OauthRequest oauthRequest, MemberRequestDto memberRequestDto, MultipartFile multipartFile) {
+    public ResponseEntity<CommonApiResponse<Object>> checkMember(String provider, OauthRequest oauthRequest) {
         String email = "";
         Social social = null;
 
@@ -60,35 +60,50 @@ public class MemberService {
 
             return new ResponseEntity<>(CommonApiResponse.of(MemberResponseDto.of(checkMember.get(), tokenResponseDTO)), httpHeaders, HttpStatus.OK);
         } else {
-            Accept accept = Accept.builder()
-                    .serviceAccepted(memberRequestDto.isServiceAccepted())
-                    .infoAccepted(memberRequestDto.isInfoAccepted())
-                    .marketingAccepted(memberRequestDto.isMarketingAccepted())
-                    .build();
-            acceptRepository.save(accept);
-
-            Member member = Member.builder()
-                    .email(email)
-                    .password(passwordEncoder.encode("social"))
-                    .nickname(memberRequestDto.getNickname())
-                    .social(social)
-                    .role(Role.ROLE_USER)
-                    .profileImgUrl(
-                            multipartFile == null
-                                    ? null
-                                    : awsS3Service.uploadImage(multipartFile, "member"))
-                    .accept(accept)
-                    .build();
-            memberRepository.save(member);
-
-            HttpHeaders httpHeaders = new HttpHeaders();
-            TokenResponseDto tokenResponseDTO = tokenProvider.generateToken(email);
-            httpHeaders.add("Authorization", "Bearer " + tokenResponseDTO.getAccessToken());
-
-            log.info("회원가입 성공");
-
-            return new ResponseEntity<>(CommonApiResponse.of(MemberResponseDto.of(member, tokenResponseDTO)), httpHeaders, HttpStatus.OK);
+            return ResponseEntity.ok(CommonApiResponse.of(false));
         }
+    }
+
+    // 회원가입(소셜)
+    @Transactional
+    public ResponseEntity<CommonApiResponse<MemberResponseDto>> makeMember(String provider, OauthRequest oauthRequest, MemberRequestDto memberRequestDto, MultipartFile multipartFile) {
+        String email = "";
+        Social social = null;
+
+        if (provider.equals("kakao")) {
+            email = getKakaoUser(oauthRequest.getAccessToken()).getKakaoAccount().getEmail();
+            log.info(email);
+            social = Social.KAKAO;
+        }
+
+        Accept accept = Accept.builder()
+                .serviceAccepted(memberRequestDto.isServiceAccepted())
+                .infoAccepted(memberRequestDto.isInfoAccepted())
+                .marketingAccepted(memberRequestDto.isMarketingAccepted())
+                .build();
+        acceptRepository.save(accept);
+
+        Member member = Member.builder()
+                .email(email)
+                .password(passwordEncoder.encode("social"))
+                .nickname(memberRequestDto.getNickname())
+                .social(social)
+                .role(Role.ROLE_USER)
+                .profileImgUrl(
+                        multipartFile == null
+                                ? null
+                                : awsS3Service.uploadImage(multipartFile, "member"))
+                .accept(accept)
+                .build();
+        memberRepository.save(member);
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        TokenResponseDto tokenResponseDTO = tokenProvider.generateToken(email);
+        httpHeaders.add("Authorization", "Bearer " + tokenResponseDTO.getAccessToken());
+
+        log.info("회원가입 성공");
+
+        return new ResponseEntity<>(CommonApiResponse.of(MemberResponseDto.of(member, tokenResponseDTO)), httpHeaders, HttpStatus.OK);
     }
 
     // 토큰 재발급
@@ -122,6 +137,7 @@ public class MemberService {
         return memberRepository.existsByNickname(nickname);
     }
 
+    // 카카오 유저 정보 가져오기
     public KakaoUserDto getKakaoUser(String accessToken) {
         String getUserURL = "https://kapi.kakao.com/v2/user/me";
 
