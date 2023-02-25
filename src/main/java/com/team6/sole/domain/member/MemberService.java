@@ -66,12 +66,12 @@ public class MemberService {
 
     // 회원가입(소셜)
     @Transactional
-    public ResponseEntity<CommonApiResponse<MemberResponseDto>> makeMember(String provider, OauthRequest oauthRequest, MemberRequestDto memberRequestDto, MultipartFile multipartFile) {
+    public ResponseEntity<CommonApiResponse<MemberResponseDto>> makeMember(String provider, MemberRequestDto memberRequestDto) {
         String email = "";
         Social social = null;
 
         if (provider.equals("kakao")) {
-            email = getKakaoUser(oauthRequest.getAccessToken()).getKakaoAccount().getEmail();
+            email = getKakaoUser(memberRequestDto.getAccessToken()).getKakaoAccount().getEmail();
             log.info(email);
             social = Social.KAKAO;
         }
@@ -90,9 +90,9 @@ public class MemberService {
                 .social(social)
                 .role(Role.ROLE_USER)
                 .profileImgUrl(
-                        multipartFile == null
+                        memberRequestDto.getMultipartFile() == null
                                 ? null
-                                : awsS3Service.uploadImage(multipartFile, "member"))
+                                : awsS3Service.uploadImage(memberRequestDto.getMultipartFile(), "member"))
                 .accept(accept)
                 .build();
         memberRepository.save(member);
