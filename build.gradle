@@ -55,6 +55,9 @@ dependencies {
 
 	//AWS S3
 	implementation 'io.awspring.cloud:spring-cloud-starter-aws:2.4.2'
+
+	// jwt library
+	implementation group: 'com.nimbusds', name: 'nimbus-jose-jwt', version: '3.10'
 }
 
 test {
