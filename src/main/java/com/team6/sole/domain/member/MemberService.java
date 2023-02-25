@@ -66,7 +66,7 @@ public class MemberService {
 
     // 회원가입(소셜)
     @Transactional
-    public ResponseEntity<CommonApiResponse<MemberResponseDto>> makeMember(String provider, MemberRequestDto memberRequestDto) {
+    public ResponseEntity<CommonApiResponse<MemberResponseDto>> makeMember(String provider, MultipartFile multipartFile, MemberRequestDto memberRequestDto) {
         String email = "";
         Social social = null;
 
@@ -90,9 +90,9 @@ public class MemberService {
                 .social(social)
                 .role(Role.ROLE_USER)
                 .profileImgUrl(
-                        memberRequestDto.getMultipartFile() == null
+                        multipartFile == null
                                 ? null
-                                : awsS3Service.uploadImage(memberRequestDto.getMultipartFile(), "member"))
+                                : awsS3Service.uploadImage(multipartFile, "member"))
                 .accept(accept)
                 .build();
         memberRepository.save(member);

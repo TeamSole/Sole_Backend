@@ -32,8 +32,9 @@ public class MemberApiController {
     @ApiOperation(value = "회원가입(소셜)")
     public ResponseEntity<CommonApiResponse<MemberResponseDto>> makeMember(
             @PathVariable String provider,
+            @RequestPart(required = false) MultipartFile multipartFile,
             @RequestPart MemberRequestDto memberRequestDto) {
-        return memberService.makeMember(provider, memberRequestDto);
+        return memberService.makeMember(provider, multipartFile, memberRequestDto);
     }
 
     @PostMapping("reissue")
@@ -48,5 +49,10 @@ public class MemberApiController {
     @ApiOperation(value = "닉네임 중복 체크")
     public ResponseEntity<Boolean> duplicateNickname(@RequestBody DuplicateNickname duplicateNickname) {
         return ResponseEntity.ok(memberService.duplicateNickname(duplicateNickname.getNickname()));
+    }
+
+    @PostMapping("test")
+    public ResponseEntity<String> test(@RequestPart MemberRequestDto memberRequestDto) {
+        return ResponseEntity.ok(memberRequestDto.getNickname());
     }
 }
