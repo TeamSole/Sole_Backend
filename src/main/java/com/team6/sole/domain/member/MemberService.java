@@ -60,7 +60,7 @@ public class MemberService {
 
             return new ResponseEntity<>(CommonApiResponse.of(MemberResponseDto.of(checkMember.get(), tokenResponseDTO)), httpHeaders, HttpStatus.OK);
         } else {
-            return ResponseEntity.ok(CommonApiResponse.of(false));
+            return ResponseEntity.ok(CommonApiResponse.of(MemberResponseDto.ofSignUp(false)));
         }
     }
 

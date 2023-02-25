@@ -10,7 +10,7 @@ import lombok.*;
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@JsonInclude(JsonInclude.Include.NON_NULL) //NULL 필드 가림
+/*@JsonInclude(JsonInclude.Include.NON_NULL) //NULL 필드 가림*/
 public class MemberResponseDto {
     private Long memberId;
 
@@ -28,10 +28,12 @@ public class MemberResponseDto {
 
     private String refreshToken;
 
+    private boolean check;
+
     @Builder
     public MemberResponseDto(Long memberId, String email, String nickname,
                              String profileImgUrl, Social social, Role role,
-                             String accessToken, String refreshToken) {
+                             String accessToken, String refreshToken, boolean check) {
         this.memberId = memberId;
         this.email = email;
         this.nickname = nickname;
@@ -40,6 +42,7 @@ public class MemberResponseDto {
         this.role = role;
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
+        this.check = check;
     }
 
     public static MemberResponseDto of(Member member) {
@@ -63,6 +66,14 @@ public class MemberResponseDto {
                 .role(member.getRole())
                 .accessToken(tokenResponseDto.getAccessToken())
                 .refreshToken(tokenResponseDto.getRefreshToken())
+                .build();
+    }
+
+    public static MemberResponseDto ofSignUp(boolean check) {
+        return MemberResponseDto.builder()
+                .check(check)
+                .accessToken(null)
+                .refreshToken(null)
                 .build();
     }
 }
