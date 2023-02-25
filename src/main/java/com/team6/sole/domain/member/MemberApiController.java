@@ -32,10 +32,8 @@ public class MemberApiController {
     @ApiOperation(value = "회원가입(소셜)")
     public ResponseEntity<CommonApiResponse<MemberResponseDto>> makeMember(
             @PathVariable String provider,
-            @RequestPart OauthRequest oauthRequest,
-            @RequestPart MemberRequestDto memberRequestDto,
-            @RequestPart(required = false) MultipartFile multipartFile) {
-        return memberService.makeMember(provider, oauthRequest, memberRequestDto, multipartFile);
+            @RequestPart MemberRequestDto memberRequestDto) {
+        return memberService.makeMember(provider, memberRequestDto);
     }
 
     @PostMapping("reissue")

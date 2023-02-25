@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -28,4 +29,10 @@ public class MemberRequestDto {
 
     @ApiModelProperty(value = "마케팅 정보 수신 및 동의", example = "false")
     private boolean marketingAccepted;
+    
+    @ApiModelProperty(value = "프로필 이미지 URL")
+    private MultipartFile multipartFile;
+    
+    @ApiModelProperty(value = "소셜 어세스토큰")
+    private String accessToken;
 }
