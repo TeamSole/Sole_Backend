@@ -1,5 +1,6 @@
 package com.team6.sole.domain.member.entity;
 
+import com.team6.sole.domain.follow.entity.Follow;
 import com.team6.sole.domain.member.model.Role;
 import com.team6.sole.domain.member.model.Social;
 import lombok.AccessLevel;
@@ -8,6 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -16,7 +19,7 @@ public class Member {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long memberId;
 
-    private String email;
+    private String socialId;
 
     private String password;
 
@@ -32,8 +35,17 @@ public class Member {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Embedded
+    private FollowInfo followInfo;
+
     @OneToOne(fetch = FetchType.LAZY)
     private Accept accept;
+
+    @OneToMany(mappedBy = "fromMember", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Follow> fromFollows = new ArrayList<>();
+
+    @OneToMany(mappedBy = "toMember", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Follow> toFollows = new ArrayList<>();
 
     public void modMypage(String profileImgUrl, String nickname, String description) {
         this.profileImgUrl = profileImgUrl;
@@ -42,17 +54,21 @@ public class Member {
     }
 
     @Builder
-    public Member(Long memberId, String email, String password,
+    public Member(Long memberId, String socialId, String password,
                   String nickname, String profileImgUrl, String description,
-                  Social social, Role role, Accept accept) {
+                  Social social, Role role, FollowInfo followInfo, Accept accept,
+                  List<Follow> fromFollows, List<Follow> toFollows) {
         this.memberId = memberId;
-        this.email = email;
+        this.socialId = socialId;
         this.password = password;
         this.nickname = nickname;
         this.profileImgUrl = profileImgUrl;
         this.description = description;
         this.social = social;
         this.role = role;
+        this.followInfo = followInfo;
         this.accept = accept;
+        this.fromFollows = fromFollows;
+        this.toFollows = toFollows;
     }
 }

@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.ArrayList;
 import java.util.Optional;
 
 @Service
@@ -38,77 +39,95 @@ public class MemberService {
     private final TokenProvider tokenProvider;
     private final WebClient webClient;
 
-    // 회원가입 및 로그인(소셜)
+    // 회원체크 및 로그인(소셜)
     @Transactional
-    public ResponseEntity<CommonApiResponse<MemberResponseDto>> makeMember(String provider, OauthRequest oauthRequest, MemberRequestDto memberRequestDto, MultipartFile multipartFile) {
-        String email = "";
+    public ResponseEntity<CommonApiResponse<Object>> checkMember(String provider, OauthRequest oauthRequest) {
+        String socialId = "";
         Social social = null;
 
         if (provider.equals("kakao")) {
-            email = getKakaoUser(oauthRequest.getAccessToken()).getKakaoAccount().getEmail();
-            log.info(email);
+            socialId = getKakaoUser(oauthRequest.getAccessToken()).getAuthenticationCode();
+            log.info(socialId);
             social = Social.KAKAO;
         }
-        Optional<Member> checkMember = memberRepository.findByEmailAndSocial(email, social);
+        Optional<Member> checkMember = memberRepository.findBySocialIdAndSocial(socialId, social);
 
         if (checkMember.isPresent()) {
             HttpHeaders httpHeaders = new HttpHeaders();
-            TokenResponseDto tokenResponseDTO = tokenProvider.generateToken(email);
+            TokenResponseDto tokenResponseDTO = tokenProvider.generateToken(socialId);
             httpHeaders.add("Authorization", "Bearer " + tokenResponseDTO.getAccessToken());
 
             log.info("로그인 성공");
 
             return new ResponseEntity<>(CommonApiResponse.of(MemberResponseDto.of(checkMember.get(), tokenResponseDTO)), httpHeaders, HttpStatus.OK);
         } else {
-            Accept accept = Accept.builder()
-                    .serviceAccepted(memberRequestDto.isServiceAccepted())
-                    .infoAccepted(memberRequestDto.isInfoAccepted())
-                    .marketingAccepted(memberRequestDto.isMarketingAccepted())
-                    .build();
-            acceptRepository.save(accept);
-
-            Member member = Member.builder()
-                    .email(email)
-                    .password(passwordEncoder.encode("social"))
-                    .nickname(memberRequestDto.getNickname())
-                    .social(social)
-                    .role(Role.ROLE_USER)
-                    .profileImgUrl(
-                            multipartFile == null
-                                    ? null
-                                    : awsS3Service.uploadImage(multipartFile, "member"))
-                    .accept(accept)
-                    .build();
-            memberRepository.save(member);
-
-            HttpHeaders httpHeaders = new HttpHeaders();
-            TokenResponseDto tokenResponseDTO = tokenProvider.generateToken(email);
-            httpHeaders.add("Authorization", "Bearer " + tokenResponseDTO.getAccessToken());
-
-            log.info("회원가입 성공");
-
-            return new ResponseEntity<>(CommonApiResponse.of(MemberResponseDto.of(member, tokenResponseDTO)), httpHeaders, HttpStatus.OK);
+            return ResponseEntity.ok(CommonApiResponse.of(MemberResponseDto.ofSignUp(false)));
         }
+    }
+
+    // 회원가입(소셜)
+    @Transactional
+    public ResponseEntity<CommonApiResponse<MemberResponseDto>> makeMember(String provider, MultipartFile multipartFile, MemberRequestDto memberRequestDto) {
+        String socialId = "";
+        Social social = null;
+
+        if (provider.equals("kakao")) {
+            socialId = getKakaoUser(memberRequestDto.getAccessToken()).getAuthenticationCode();
+            log.info(socialId);
+            social = Social.KAKAO;
+        }
+
+        Accept accept = Accept.builder()
+                .serviceAccepted(memberRequestDto.isServiceAccepted())
+                .infoAccepted(memberRequestDto.isInfoAccepted())
+                .marketingAccepted(memberRequestDto.isMarketingAccepted())
+                .build();
+        acceptRepository.save(accept);
+
+        Member member = Member.builder()
+                .socialId(socialId)
+                .password(passwordEncoder.encode("social"))
+                .nickname(memberRequestDto.getNickname())
+                .social(social)
+                .role(Role.ROLE_USER)
+                .profileImgUrl(
+                        multipartFile == null
+                                ? null
+                                : awsS3Service.uploadImage(multipartFile, "member"))
+                .accept(accept)
+                .description(null)
+                .fromFollows(new ArrayList<>())
+                .toFollows(new ArrayList<>())
+                .build();
+        memberRepository.save(member);
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        TokenResponseDto tokenResponseDTO = tokenProvider.generateToken(socialId);
+        httpHeaders.add("Authorization", "Bearer " + tokenResponseDTO.getAccessToken());
+
+        log.info("회원가입 성공");
+
+        return new ResponseEntity<>(CommonApiResponse.of(MemberResponseDto.of(member, tokenResponseDTO)), httpHeaders, HttpStatus.OK);
     }
 
     // 토큰 재발급
     @Transactional
     public ResponseEntity<CommonApiResponse<TokenResponseDto>> reissue(String accessToken, String refreshToken) {
-        String email;
+        String socialId;
 
         if (!tokenProvider.validateTokenExceptExpiration(accessToken)){
             throw new BadRequestException(ErrorCode.INVALID_ACCESS_TOKEN);
         }
 
         try {
-            email = tokenProvider.parseClaims(accessToken).getSubject();
+            socialId = tokenProvider.parseClaims(accessToken).getSubject();
         } catch (Exception e) {
             throw new BadRequestException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
-        tokenProvider.validateRefreshToken(email, refreshToken);
+        tokenProvider.validateRefreshToken(socialId, refreshToken);
 
-        TokenResponseDto tokenResponseDto = tokenProvider.generateToken(email);
+        TokenResponseDto tokenResponseDto = tokenProvider.generateToken(socialId);
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Authorization", "Bearer " + tokenResponseDto.getAccessToken());
@@ -122,6 +141,7 @@ public class MemberService {
         return memberRepository.existsByNickname(nickname);
     }
 
+    // 카카오 유저 정보 가져오기
     public KakaoUserDto getKakaoUser(String accessToken) {
         String getUserURL = "https://kapi.kakao.com/v2/user/me";
 

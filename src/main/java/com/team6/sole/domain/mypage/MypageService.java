@@ -20,8 +20,8 @@ public class MypageService {
 
     // 마이페이지 조회
     @Transactional(readOnly = true)
-    public MypageResponseDto showMypage(String email) {
-        Member member = memberRepository.findByEmail(email)
+    public MypageResponseDto showMypage(String socialId) {
+        Member member = memberRepository.findBySocialId(socialId)
                 .orElseThrow(() -> new BadRequestException(ErrorCode.MEMBER_NOT_FOUND));
         
         return MypageResponseDto.of(member);
@@ -29,8 +29,8 @@ public class MypageService {
     
     // 마이페이지 수정
     @Transactional
-    public MypageResponseDto modMypage(String email, MultipartFile multipartFile, MypageRequestDto mypageRequestDto) {
-        Member member = memberRepository.findByEmail(email)
+    public MypageResponseDto modMypage(String socialId, MultipartFile multipartFile, MypageRequestDto mypageRequestDto) {
+        Member member = memberRepository.findBySocialId(socialId)
                 .orElseThrow(() -> new BadRequestException(ErrorCode.MEMBER_NOT_FOUND));
 
         member.modMypage(
@@ -46,8 +46,8 @@ public class MypageService {
 
     // 탈퇴
     @Transactional
-    public String delMember(String email) {
-        Member member = memberRepository.findByEmail(email)
+    public String delMember(String socialId) {
+        Member member = memberRepository.findBySocialId(socialId)
                 .orElseThrow(() -> new BadRequestException(ErrorCode.MEMBER_NOT_FOUND));
 
         memberRepository.deleteByMemberId(member.getMemberId());
