@@ -30,7 +30,8 @@ public class FollowResponseDto {
         return FollowResponseDto.builder()
                 .followId(follow.getFollowId())
                 .toMember(follow.getToMember())
-
+                .followerCount(follow.getToMember().getFollowInfo().getFollower())
+                .followingCount(follow.getToMember().getFollowInfo().getFollowing())
                 .build();
     }
 }
