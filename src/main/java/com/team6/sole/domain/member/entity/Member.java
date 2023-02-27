@@ -35,6 +35,9 @@ public class Member {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Embedded
+    private FollowInfo followInfo;
+
     @OneToOne(fetch = FetchType.LAZY)
     private Accept accept;
 
@@ -53,7 +56,7 @@ public class Member {
     @Builder
     public Member(Long memberId, String socialId, String password,
                   String nickname, String profileImgUrl, String description,
-                  Social social, Role role, Accept accept,
+                  Social social, Role role, FollowInfo followInfo, Accept accept,
                   List<Follow> fromFollows, List<Follow> toFollows) {
         this.memberId = memberId;
         this.socialId = socialId;
@@ -63,6 +66,7 @@ public class Member {
         this.description = description;
         this.social = social;
         this.role = role;
+        this.followInfo = followInfo;
         this.accept = accept;
         this.fromFollows = fromFollows;
         this.toFollows = toFollows;
