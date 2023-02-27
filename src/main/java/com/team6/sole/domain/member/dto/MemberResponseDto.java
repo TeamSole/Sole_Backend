@@ -14,7 +14,7 @@ import lombok.*;
 public class MemberResponseDto {
     private Long memberId;
 
-    private String email;
+    private String socialId;
 
     private String nickname;
 
@@ -31,11 +31,11 @@ public class MemberResponseDto {
     private boolean check;
 
     @Builder
-    public MemberResponseDto(Long memberId, String email, String nickname,
+    public MemberResponseDto(Long memberId, String socialId, String nickname,
                              String profileImgUrl, Social social, Role role,
                              String accessToken, String refreshToken, boolean check) {
         this.memberId = memberId;
-        this.email = email;
+        this.socialId = socialId;
         this.nickname = nickname;
         this.profileImgUrl = profileImgUrl;
         this.social = social;
@@ -48,7 +48,7 @@ public class MemberResponseDto {
     public static MemberResponseDto of(Member member) {
         return MemberResponseDto.builder()
                 .memberId(member.getMemberId())
-                .email(member.getEmail())
+                .socialId(member.getSocialId())
                 .nickname(member.getNickname())
                 .profileImgUrl(member.getProfileImgUrl())
                 .social(member.getSocial())
@@ -59,7 +59,7 @@ public class MemberResponseDto {
     public static MemberResponseDto of(Member member, TokenResponseDto tokenResponseDto) {
         return MemberResponseDto.builder()
                 .memberId(member.getMemberId())
-                .email(member.getEmail())
+                .socialId(member.getSocialId())
                 .nickname(member.getNickname())
                 .profileImgUrl(member.getProfileImgUrl())
                 .social(member.getSocial())
