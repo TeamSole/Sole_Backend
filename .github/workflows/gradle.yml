@@ -24,6 +24,8 @@ jobs:
         run: |
           touch ./src/main/resources/application.yml
           echo "$ENV_PROPERTIES_PROD" > ./src/main/resources/application.yml
+          touch ./src/main/resources/sole.json
+          echo "$FCM_JSON" > ./src/main/resources/sole.json
         env:
           ENV_PROPERTIES_PROD: ${{ secrets.ENV_PROPERTIES_PROD }}
 

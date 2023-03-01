@@ -122,6 +122,20 @@ public class TokenProvider implements InitializingBean {
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
 
+    /**
+     * Redis 에서 RegistrerToken 을 제거
+     * @param socialId 로그아웃 요청 유저
+     */
+    public void deleteRegisterToken(String socialId) {
+        try {
+            if (redisService.hasKey(socialId)) {
+                redisService.deleteValues(socialId);
+            }
+        } catch (Exception e) {
+            log.error("Redis 로그아웃 요청을 실패했습니다");
+        }
+    }
+
     // 토큰의 유효성 검증
     public boolean validateToken(String token) {
         try {
