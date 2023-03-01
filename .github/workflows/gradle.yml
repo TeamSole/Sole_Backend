@@ -28,6 +28,7 @@ jobs:
           echo "$FCM_JSON" > ./src/main/resources/sole.json
         env:
           ENV_PROPERTIES_PROD: ${{ secrets.ENV_PROPERTIES_PROD }}
+          FCM_JSON: ${{ secrets.FCM_JSON }}
 
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
