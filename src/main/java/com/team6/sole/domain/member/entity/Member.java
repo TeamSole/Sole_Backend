@@ -31,6 +31,8 @@ public class Member {
 
     private String description;
 
+    private String fcmToken;
+
     @Enumerated(EnumType.STRING)
     private Social social;
 
@@ -39,6 +41,9 @@ public class Member {
 
     @Embedded
     private FollowInfo followInfo;
+
+    @Embedded
+    private NotificationInfo notificationInfo;
 
     @OneToOne(fetch = FetchType.LAZY)
     private Accept accept;
@@ -61,11 +66,15 @@ public class Member {
         this.description = description;
     }
 
+    public void setFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
+    }
+
     @Builder
     public Member(Long memberId, String socialId, String password,
-                  String nickname, String profileImgUrl, String description,
-                  Social social, Role role, FollowInfo followInfo, Accept accept,
-                  List<Follow> fromFollows, List<Follow> toFollows,
+                  String nickname, String profileImgUrl, String description, String fcmToken,
+                  Social social, Role role, FollowInfo followInfo, NotificationInfo notificationInfo,
+                  Accept accept, List<Follow> fromFollows, List<Follow> toFollows,
                   List<Notice> notices, List<Notification> notifications) {
         this.memberId = memberId;
         this.socialId = socialId;
@@ -73,9 +82,11 @@ public class Member {
         this.nickname = nickname;
         this.profileImgUrl = profileImgUrl;
         this.description = description;
+        this.fcmToken = fcmToken;
         this.social = social;
         this.role = role;
         this.followInfo = followInfo;
+        this.notificationInfo = notificationInfo;
         this.accept = accept;
         this.fromFollows = fromFollows;
         this.toFollows = toFollows;
