@@ -61,6 +61,13 @@ public enum ErrorCode {
     MEMBER_ALREADY_EXIST(BAD_REQUEST, "M002","이미 가입된 유저입니다"),
     MEMBER_NOT_FOUND(NOT_FOUND, "M003","해당 유저 정보를 찾을 수 없습니다"),
     COUNTRY_NOT_FOUND(NOT_FOUND, "M004", "해당 국가를 찾을 수 없습니다"),
+    USER_ALREADY_LOGGED_OUT(BAD_REQUEST, "M005", "이미 로그아웃된 유저입니다"),
+
+    /* 알림 관련 오류 */
+    CANNOT_CREATE_TUPLE(INTERNAL_SERVER_ERROR, "DB000", "새로운 인스턴스 생성을 실패했습니다"),
+
+    /* 공지사항 관련 오류 */
+    NOTICE_NOT_FOUND(NOT_FOUND, "N000", "해당 공지사항을 찾을 수 없습니다"),
 
     /* 팔로우 관련 오류 */
     FOLLOW_NOT_FOUND(NOT_FOUND, "F000", "해당 팔로우를 찾을 수 없습니다");
