@@ -2,12 +2,17 @@ package com.team6.sole.domain.notice;
 
 import com.team6.sole.domain.member.MemberRepository;
 import com.team6.sole.domain.member.entity.Member;
+import com.team6.sole.domain.member.model.Role;
 import com.team6.sole.domain.notice.dto.NoticeRequestDto;
 import com.team6.sole.domain.notice.dto.NoticeResponseDto;
 import com.team6.sole.domain.notice.entity.Notice;
+import com.team6.sole.domain.notice.event.NoticeEvent;
 import com.team6.sole.global.error.ErrorCode;
 import com.team6.sole.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,10 +20,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class NoticeService {
     private final NoticeRepository noticeRepository;
     private final MemberRepository memberRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     // 공지사항 등록
     @Transactional
@@ -33,13 +40,21 @@ public class NoticeService {
                 .build();
         noticeRepository.save(notice);
 
-        /*fcm 추가...!*/
+        List<Member> receivers = memberRepository.findAllByRoleAndNotificationInfo_ActivityNotTrue(Role.ROLE_USER);
+
+        //알림 이벤트 전송(fcm)
+        try {
+            applicationEventPublisher.publishEvent(new NoticeEvent(receivers, noticeRequestDto));
+        } catch (Exception e) {
+            log.error("푸시 알림 전송에 실패했습니다 - {}", e.getMessage());
+        }
 
         return NoticeResponseDto.of(notice);
     }
     
     // 공지사항 조회
     @Transactional(readOnly = true)
+    @Cacheable("notices")
     public List<NoticeResponseDto> showNotices() {
         List<Notice> notices = noticeRepository.findAll();
         
@@ -50,6 +65,7 @@ public class NoticeService {
     
     // 공지사항 상세조회
     @Transactional(readOnly = true)
+    @Cacheable(value = "notices", key = "#noticeId")
     public NoticeResponseDto showNotice(Long noticeId) {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOTICE_NOT_FOUND));

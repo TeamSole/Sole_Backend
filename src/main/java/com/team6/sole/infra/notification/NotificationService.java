@@ -4,6 +4,10 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.messaging.*;
+import com.team6.sole.domain.member.entity.Member;
+import com.team6.sole.global.error.ErrorCode;
+import com.team6.sole.global.error.exception.InternalServerException;
+import com.team6.sole.infra.notification.model.NotificationType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,6 +30,8 @@ public class NotificationService {
     // 메시징만 권한 설정
     @Value("${fcm.key.scope}")
     private String fireBaseScope;
+
+    private final NotificationRepository notificationRepository;
 
     // fcm 기본 설정 진행
     @PostConstruct
@@ -62,6 +68,36 @@ public class NotificationService {
             FirebaseMessaging.getInstance().send(message);
         } catch (FirebaseMessagingException e) {
             log.error("cannot send to memberList push message. error info : {}", e.getMessage());
+        }
+    }
+
+    public void createNotification(Member receiver, String title, String content, NotificationType notificationType) {
+        try {
+            notificationRepository.save(
+                    com.team6.sole.infra.notification.entity.Notification.builder()
+                            .receiver(receiver)
+                            .title(title)
+                            .content(content)
+                            .type(notificationType)
+                            .build()
+            );
+        } catch (Exception e) {
+            throw new InternalServerException(ErrorCode.CANNOT_CREATE_TUPLE);
+        }
+    }
+
+    public void createNotificationList(List<Member> receivers, String title, String content, NotificationType notificationType) {
+        try {
+            notificationRepository.saveAll(receivers.stream().map(receiver ->
+                    com.team6.sole.infra.notification.entity.Notification.builder()
+                            .receiver(receiver)
+                            .title(title)
+                            .content(content)
+                            .type(notificationType)
+                            .build()
+            ).collect(Collectors.toList()));
+        } catch (Exception e) {
+            throw new InternalServerException(ErrorCode.CANNOT_CREATE_TUPLE);
         }
     }
 
