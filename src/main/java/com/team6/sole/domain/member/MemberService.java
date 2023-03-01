@@ -1,9 +1,6 @@
 package com.team6.sole.domain.member;
 
-import com.team6.sole.domain.member.dto.KakaoUserDto;
-import com.team6.sole.domain.member.dto.MemberRequestDto;
-import com.team6.sole.domain.member.dto.MemberResponseDto;
-import com.team6.sole.domain.member.dto.OauthRequest;
+import com.team6.sole.domain.member.dto.*;
 import com.team6.sole.domain.member.entity.Accept;
 import com.team6.sole.domain.member.entity.Member;
 import com.team6.sole.domain.member.model.Role;
@@ -14,8 +11,10 @@ import com.team6.sole.global.config.security.dto.TokenResponseDto;
 import com.team6.sole.global.config.security.jwt.TokenProvider;
 import com.team6.sole.global.error.ErrorCode;
 import com.team6.sole.global.error.exception.BadRequestException;
+import com.team6.sole.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,7 +40,7 @@ public class MemberService {
 
     // 회원체크 및 로그인(소셜)
     @Transactional
-    public ResponseEntity<CommonApiResponse<Object>> checkMember(String provider, OauthRequest oauthRequest) {
+    public ResponseEntity<CommonApiResponse<MemberResponseDto>> checkMember(String provider, OauthRequest oauthRequest) {
         String socialId = "";
         Social social = null;
 
@@ -56,6 +55,11 @@ public class MemberService {
             HttpHeaders httpHeaders = new HttpHeaders();
             TokenResponseDto tokenResponseDTO = tokenProvider.generateToken(socialId);
             httpHeaders.add("Authorization", "Bearer " + tokenResponseDTO.getAccessToken());
+            checkMember.get().setFcmToken(
+                    oauthRequest.getFcmToken() == null
+                            ? null
+                            : oauthRequest.getFcmToken()
+            );
 
             log.info("로그인 성공");
 
@@ -98,6 +102,10 @@ public class MemberService {
                 .description(null)
                 .fromFollows(new ArrayList<>())
                 .toFollows(new ArrayList<>())
+                .fcmToken(
+                        memberRequestDto.getFcmToken() == null
+                                ? null
+                                : memberRequestDto.getFcmToken())
                 .build();
         memberRepository.save(member);
 
@@ -133,6 +141,35 @@ public class MemberService {
         httpHeaders.add("Authorization", "Bearer " + tokenResponseDto.getAccessToken());
 
         return new ResponseEntity<>(CommonApiResponse.of(tokenResponseDto), httpHeaders, HttpStatus.OK);
+    }
+    
+    // fcmToken 교체
+    @Transactional
+    public String modFcmToken(String socialId, FcmTokenDto fcmTokenDto) {
+        Member member = memberRepository.findBySocialId(socialId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+        member.setFcmToken(fcmTokenDto.getFcmToken());
+
+        return "fcmToken 교체 성공";
+    }
+
+    // 로그아웃(fcmToken 삭제)
+    @Transactional
+    public String logout(String socialId) {
+        Member member = memberRepository.findBySocialId(socialId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+
+        //이미 로그아웃 된 상태
+        if (StringUtils.isBlank(member.getFcmToken())) {
+            throw new BadRequestException(ErrorCode.USER_ALREADY_LOGGED_OUT);
+        }
+
+        //redis 에서 registerToken 삭제
+        tokenProvider.deleteRegisterToken(member.getSocialId());
+
+        member.setFcmToken(null);
+
+        return "로그아웃 성공";
     }
 
     // 닉네임 중복 검사
