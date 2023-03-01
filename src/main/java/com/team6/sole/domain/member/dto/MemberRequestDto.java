@@ -5,7 +5,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -32,4 +31,7 @@ public class MemberRequestDto {
     
     @ApiModelProperty(value = "소셜 어세스토큰")
     private String accessToken;
+
+    @ApiModelProperty(value = "fcm 토큰")
+    private String fcmToken;
 }

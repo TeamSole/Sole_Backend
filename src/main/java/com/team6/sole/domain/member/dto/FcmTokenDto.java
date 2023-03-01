@@ -6,8 +6,6 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class OauthRequest {
-    private String accessToken;
-
+public class FcmTokenDto {
     private String fcmToken;
 }
