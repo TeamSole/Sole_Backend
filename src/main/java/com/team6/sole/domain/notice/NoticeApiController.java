@@ -42,4 +42,13 @@ public class NoticeApiController {
             @PathVariable Long noticeId) {
         return ResponseEntity.ok(CommonApiResponse.of(noticeService.showNotice(noticeId)));
     }
+
+    @PutMapping("{noticeId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @ApiOperation(value = "공지사항 수정")
+    public ResponseEntity<CommonApiResponse<NoticeResponseDto>> modNotice(
+            @PathVariable Long noticeId,
+            @RequestBody NoticeRequestDto noticeRequestDto) {
+        return ResponseEntity.ok(CommonApiResponse.of(noticeService.modNotice(noticeId, noticeRequestDto)));
+    }
 }
