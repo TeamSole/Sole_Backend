@@ -12,12 +12,12 @@ import java.util.concurrent.Executor;
 @EnableAsync
 @Configuration
 public class AsyncConfig {
-    @Bean(name = "notice")
+    @Bean(name = "follow")
     public Executor threadPoolExecutor(){
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         int processors = Runtime.getRuntime().availableProcessors();
         log.info("processors count {}", processors);
-        executor.setThreadNamePrefix("NoticeAsync-"); // thread 이름 설정
+        executor.setThreadNamePrefix("FollowAsync-"); // thread 이름 설정
         executor.setCorePoolSize(processors); // 기본 스레드 수
         executor.setMaxPoolSize(processors * 2); // 최대 스레드 개수
         executor.setQueueCapacity(50); // 최대 큐 수
