@@ -3,6 +3,7 @@ package com.team6.sole.domain.member;
 import com.team6.sole.domain.member.dto.*;
 import com.team6.sole.domain.member.entity.Accept;
 import com.team6.sole.domain.member.entity.Member;
+import com.team6.sole.domain.member.entity.NotificationInfo;
 import com.team6.sole.domain.member.model.Role;
 import com.team6.sole.domain.member.model.Social;
 import com.team6.sole.global.config.CommonApiResponse;
@@ -100,6 +101,12 @@ public class MemberService {
                                 : awsS3Service.uploadImage(multipartFile, "member"))
                 .accept(accept)
                 .description(null)
+                .notificationInfo(
+                        NotificationInfo.builder()
+                                .activityNot(true)
+                                .marketingNot(memberRequestDto.isMarketingAccepted())
+                                .build()
+                )
                 .fromFollows(new ArrayList<>())
                 .toFollows(new ArrayList<>())
                 .fcmToken(

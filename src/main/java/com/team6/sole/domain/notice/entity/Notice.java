@@ -23,6 +23,11 @@ public class Notice extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private Member writer;
 
+    public void modNotice(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
+
     @Builder
     public Notice(Long noticeId, String title,
                   String content, Member writer) {

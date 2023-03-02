@@ -11,6 +11,7 @@ import com.team6.sole.global.error.ErrorCode;
 import com.team6.sole.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -69,6 +70,18 @@ public class NoticeService {
     public NoticeResponseDto showNotice(Long noticeId) {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOTICE_NOT_FOUND));
+
+        return NoticeResponseDto.of(notice);
+    }
+    
+    // 공지사항 수정
+    @Transactional
+    @CachePut(value = "notices", key = "#noticeId")
+    public NoticeResponseDto modNotice(Long noticeId, NoticeRequestDto noticeRequestDto) {
+        Notice notice = noticeRepository.findById(noticeId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOTICE_NOT_FOUND));
+
+        notice.modNotice(noticeRequestDto.getTitle(), noticeRequestDto.getContent());
 
         return NoticeResponseDto.of(notice);
     }
