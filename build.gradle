@@ -58,6 +58,12 @@ dependencies {
 
 	// jwt library
 	implementation group: 'com.nimbusds', name: 'nimbus-jose-jwt', version: '3.10'
+
+	//Firebase FCM
+	implementation group: 'com.google.firebase', name: 'firebase-admin', version: '6.8.1'
+
+	// cache
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
 }
 
 test {

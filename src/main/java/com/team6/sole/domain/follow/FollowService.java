@@ -2,11 +2,14 @@ package com.team6.sole.domain.follow;
 
 import com.team6.sole.domain.follow.dto.FollowResponseDto;
 import com.team6.sole.domain.follow.entity.Follow;
+import com.team6.sole.domain.follow.event.FollowEvent;
 import com.team6.sole.domain.member.MemberRepository;
 import com.team6.sole.domain.member.entity.Member;
 import com.team6.sole.global.error.ErrorCode;
 import com.team6.sole.global.error.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,10 +17,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class FollowService {
     private final FollowRepository followRepository;
     private final MemberRepository memberRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     // 팔로잉 보기
     @Transactional(readOnly = true)
@@ -46,6 +51,13 @@ public class FollowService {
 
         fromMember.getFollowInfo().addFollowing(); /*DirtyChecking*/
         toMember.getFollowInfo().addFollower(); /*DirtyChecking*/
+
+        //알림 이벤트 전송(fcm)
+        try {
+            applicationEventPublisher.publishEvent(new FollowEvent(fromMember, toMember));
+        } catch (Exception e) {
+            log.error("푸시 알림 전송에 실패했습니다 - {}", e.getMessage());
+        }
 
         return toMember.getNickname() + "님을 팔로우했습니다...!";
     }
