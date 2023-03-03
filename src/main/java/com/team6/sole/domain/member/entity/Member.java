@@ -66,6 +66,11 @@ public class Member {
         this.description = description;
     }
 
+    public void modNotSetting(boolean activityNot, boolean marketingNot) {
+        this.notificationInfo.setActivityNot(activityNot);
+        this.notificationInfo.setMarketingNot(marketingNot);
+    }
+
     public void setFcmToken(String fcmToken) {
         this.fcmToken = fcmToken;
     }
