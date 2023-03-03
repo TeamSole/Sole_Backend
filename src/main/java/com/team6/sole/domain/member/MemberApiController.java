@@ -44,7 +44,7 @@ public class MemberApiController {
         return ResponseEntity.ok(CommonApiResponse.of(memberService.modFcmToken(authentication.getName(), fcmTokenDto)));
     }
 
-    @PostMapping("logout")
+    @PatchMapping("logout")
     @ApiOperation(value = "로그아웃(fcmToken 삭제)")
     public ResponseEntity<CommonApiResponse<String>> logout(
             @ApiIgnore Authentication authentication) {
@@ -69,5 +69,10 @@ public class MemberApiController {
     @ApiIgnore
     public ResponseEntity<String> test(@RequestPart MemberRequestDto memberRequestDto) {
         return ResponseEntity.ok(memberRequestDto.getNickname());
+    }
+
+    @PostMapping("testLogin")
+    public ResponseEntity<CommonApiResponse<MemberResponseDto>> checkMember() {
+        return memberService.checkMember();
     }
 }
