@@ -54,7 +54,7 @@ public class MemberService {
 
         if (checkMember.isPresent()) {
             HttpHeaders httpHeaders = new HttpHeaders();
-            TokenResponseDto tokenResponseDTO = tokenProvider.generateToken(socialId);
+            TokenResponseDto tokenResponseDTO = tokenProvider.generateToken(socialId, checkMember.get().getRole().name());
             httpHeaders.add("Authorization", "Bearer " + tokenResponseDTO.getAccessToken());
             checkMember.get().setFcmToken(
                     oauthRequest.getFcmToken() == null
@@ -117,7 +117,7 @@ public class MemberService {
         memberRepository.save(member);
 
         HttpHeaders httpHeaders = new HttpHeaders();
-        TokenResponseDto tokenResponseDTO = tokenProvider.generateToken(socialId);
+        TokenResponseDto tokenResponseDTO = tokenProvider.generateToken(socialId, member.getRole().name());
         httpHeaders.add("Authorization", "Bearer " + tokenResponseDTO.getAccessToken());
 
         log.info("회원가입 성공");
@@ -142,7 +142,10 @@ public class MemberService {
 
         tokenProvider.validateRefreshToken(socialId, refreshToken);
 
-        TokenResponseDto tokenResponseDto = tokenProvider.generateToken(socialId);
+        Member member = memberRepository.findBySocialId(socialId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+
+        TokenResponseDto tokenResponseDto = tokenProvider.generateToken(socialId, member.getRole().name());
 
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Authorization", "Bearer " + tokenResponseDto.getAccessToken());
@@ -183,6 +186,21 @@ public class MemberService {
     @Transactional(readOnly = true)
     public Boolean duplicateNickname(String nickname) {
         return memberRepository.existsByNickname(nickname);
+    }
+
+    // 테스트 로그인
+    @Transactional
+    public ResponseEntity<CommonApiResponse<MemberResponseDto>> checkMember() {
+        Member checkMember = memberRepository.findBySocialIdAndSocial("jimin1126@hanmail.net", Social.KAKAO)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        TokenResponseDto tokenResponseDTO = tokenProvider.generateToken(checkMember.getSocialId(), checkMember.getRole().name());
+        httpHeaders.add("Authorization", "Bearer " + tokenResponseDTO.getAccessToken());
+
+        log.info("로그인 성공");
+
+        return new ResponseEntity<>(CommonApiResponse.of(MemberResponseDto.of(checkMember, tokenResponseDTO)), httpHeaders, HttpStatus.OK);
     }
 
     // 카카오 유저 정보 가져오기

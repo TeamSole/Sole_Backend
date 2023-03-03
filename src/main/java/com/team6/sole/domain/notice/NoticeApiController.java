@@ -22,7 +22,7 @@ public class NoticeApiController {
     private NoticeService noticeService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     @ApiOperation(value = "공지사항 등록")
     public ResponseEntity<CommonApiResponse<NoticeResponseDto>> makeNotice(
             @ApiIgnore Authentication authentication,
@@ -44,7 +44,7 @@ public class NoticeApiController {
     }
 
     @PutMapping("{noticeId}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     @ApiOperation(value = "공지사항 수정")
     public ResponseEntity<CommonApiResponse<NoticeResponseDto>> modNotice(
             @PathVariable Long noticeId,
