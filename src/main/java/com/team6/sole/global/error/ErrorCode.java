@@ -52,6 +52,7 @@ public enum ErrorCode {
     JOIN_NOT_ACCEPTED(BAD_REQUEST, "AUTH017", "개인정보 수집 및 이용에 동의를 하여야 회원가입이 진행됩니다."),
     KAKAO_BAD_REQUEST(BAD_REQUEST, "AUTH018", "카카오 회원가입에 실패했습니다."),
     GOOGLE_BAD_REQUEST(BAD_REQUEST, "AUTH019", "구글 회원가입에 실패했습니다."),
+    APPLE_BAD_REQUEST(BAD_REQUEST, "AUTH020", "애플 회원가입에 실패했습니다."),
 
     /* 이미지 관련 오류 */
     INVALID_FILE_EXTENSION(BAD_REQUEST, "FILE000", "잘못된 파일 확장자명입니다"),

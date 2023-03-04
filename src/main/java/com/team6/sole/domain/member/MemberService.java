@@ -11,10 +11,12 @@ import com.team6.sole.global.config.CommonApiResponse;
 import com.team6.sole.global.config.s3.AwsS3ServiceImpl;
 import com.team6.sole.global.config.security.dto.TokenResponseDto;
 import com.team6.sole.global.config.security.jwt.TokenProvider;
+import com.team6.sole.global.config.security.oauth.AppleUtils;
 import com.team6.sole.global.error.ErrorCode;
 import com.team6.sole.global.error.exception.BadRequestException;
 import com.team6.sole.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
@@ -39,8 +41,10 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final TokenProvider tokenProvider;
     private final WebClient webClient;
+    private final AppleUtils appleUtils;
 
     // 회원체크 및 로그인(소셜)
+    @SneakyThrows // 명시적 예외처리(lombok)
     @Transactional
     public ResponseEntity<CommonApiResponse<MemberResponseDto>> checkMember(String provider, OauthRequest oauthRequest) {
         String socialId = "";
@@ -50,6 +54,9 @@ public class MemberService {
             socialId = getKakaoUser(oauthRequest.getAccessToken()).getAuthenticationCode();
             log.info(socialId);
             social = Social.KAKAO;
+        } else {
+            socialId = appleUtils.verifyPublicKey(oauthRequest.getAccessToken()).get("sub").toString();
+            social = Social.APPLE;
         }
         Optional<Member> checkMember = memberRepository.findBySocialIdAndSocial(socialId, social);
 
@@ -72,6 +79,7 @@ public class MemberService {
     }
 
     // 회원가입(소셜)
+    @SneakyThrows // 명시적 예외처리(lombok)
     @Transactional
     public ResponseEntity<CommonApiResponse<MemberResponseDto>> makeMember(String provider, MultipartFile multipartFile, MemberRequestDto memberRequestDto) {
         String socialId = "";
@@ -81,6 +89,10 @@ public class MemberService {
             socialId = getKakaoUser(memberRequestDto.getAccessToken()).getAuthenticationCode();
             log.info(socialId);
             social = Social.KAKAO;
+        } else {
+            socialId = appleUtils.verifyPublicKey(memberRequestDto.getAccessToken()).get("sub").toString();
+            log.info(socialId);
+            social = Social.APPLE;
         }
 
         Accept accept = Accept.builder()
