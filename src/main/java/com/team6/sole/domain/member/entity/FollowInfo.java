@@ -1,5 +1,6 @@
 package com.team6.sole.domain.member.entity;
 
+import lombok.Builder;
 import lombok.Getter;
 
 import javax.persistence.Embeddable;
@@ -25,5 +26,11 @@ public class FollowInfo {
 
     public void removeFollowing() {
         this.following--;
+    }
+
+    @Builder
+    public FollowInfo(int follower, int following) {
+        this.follower = follower;
+        this.following = following;
     }
 }
