@@ -28,4 +28,10 @@ public class MemberRequestDto {
 
     @ApiModelProperty(value = "마케팅 정보 수신 및 동의", example = "false")
     private boolean marketingAccepted;
+    
+    @ApiModelProperty(value = "소셜 어세스토큰")
+    private String accessToken;
+
+    @ApiModelProperty(value = "fcm 토큰")
+    private String fcmToken;
 }

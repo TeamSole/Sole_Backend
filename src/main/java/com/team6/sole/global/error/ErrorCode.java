@@ -61,18 +61,16 @@ public enum ErrorCode {
     MEMBER_ALREADY_EXIST(BAD_REQUEST, "M002","이미 가입된 유저입니다"),
     MEMBER_NOT_FOUND(NOT_FOUND, "M003","해당 유저 정보를 찾을 수 없습니다"),
     COUNTRY_NOT_FOUND(NOT_FOUND, "M004", "해당 국가를 찾을 수 없습니다"),
+    USER_ALREADY_LOGGED_OUT(BAD_REQUEST, "M005", "이미 로그아웃된 유저입니다"),
 
-    /* PRODUCT 관련 오류 */
-    PRODUCT_NOT_FOUND(NOT_FOUND, "P001","해당 물품 정보를 찾을 수 없습니다"),
-    PRODUCT_DEMAND_NOT_FOUND(NOT_FOUND, "PD002","존재하지 않는 댓글 ID입니다."),
-    PRODUCT_DEMAND_REPLY_NOT_FOUND(NOT_FOUND, "PD002","존재하지 않는 댓글 ID입니다."),
-    PRODUCT_DEMAND_REPLY_PARENT_CHILD_NOT_VALID(BAD_REQUEST, "PD003", "부모댓글과 자식댓글의 게시글 번호가 일치하지 않습니다."),
+    /* 알림 관련 오류 */
+    CANNOT_CREATE_TUPLE(INTERNAL_SERVER_ERROR, "DB000", "새로운 인스턴스 생성을 실패했습니다"),
 
-    /* 스터디 관련 오류 */
-    STUDY_NOT_FOUND(NOT_FOUND, "S001","해당 스터디 정보를 찾을 수 없습니다"),
-    STUDY_NOT_RECRUITING(BAD_REQUEST, "S002","모집중인 스터디가 아닙니다"),
-    STUDY_FULL(BAD_REQUEST, "S003","모집인원이 가득 찼습니다"),
-    STUDY_BOARD_NOT_FOUND(NOT_FOUND, "S004","해당 스터디 게시글을 찾을 수 없습니다");
+    /* 공지사항 관련 오류 */
+    NOTICE_NOT_FOUND(NOT_FOUND, "N000", "해당 공지사항을 찾을 수 없습니다"),
+
+    /* 팔로우 관련 오류 */
+    FOLLOW_NOT_FOUND(NOT_FOUND, "F000", "해당 팔로우를 찾을 수 없습니다");
 
     private final HttpStatus httpStatus;
     private final String code;
