@@ -7,11 +7,13 @@ import com.team6.sole.domain.member.model.Social;
 import com.team6.sole.global.config.security.dto.TokenResponseDto;
 import lombok.*;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 /*@JsonInclude(JsonInclude.Include.NON_NULL) //NULL 필드 가림*/
-public class MemberResponseDto {
+public class MemberResponseDto implements Serializable {
     private Long memberId;
 
     private String socialId;
