@@ -2,6 +2,7 @@ package com.team6.sole.domain.member;
 
 import com.team6.sole.domain.member.dto.*;
 import com.team6.sole.domain.member.entity.Accept;
+import com.team6.sole.domain.member.entity.FollowInfo;
 import com.team6.sole.domain.member.entity.Member;
 import com.team6.sole.domain.member.entity.NotificationInfo;
 import com.team6.sole.domain.member.model.Role;
@@ -101,6 +102,12 @@ public class MemberService {
                                 : awsS3Service.uploadImage(multipartFile, "member"))
                 .accept(accept)
                 .description(null)
+                .followInfo(
+                        FollowInfo.builder()
+                                .follower(0)
+                                .following(0)
+                                .build()
+                )
                 .notificationInfo(
                         NotificationInfo.builder()
                                 .activityNot(true)
