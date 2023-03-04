@@ -19,7 +19,7 @@ import java.util.List;
 @Api(tags = "공지사항")
 @RequestMapping("api/notices")
 public class NoticeApiController {
-    private NoticeService noticeService;
+    private final NoticeService noticeService;
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
