@@ -5,13 +5,14 @@ import com.team6.sole.domain.member.dto.MemberResponseDto;
 import com.team6.sole.domain.notice.entity.Notice;
 import lombok.*;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @JsonInclude(JsonInclude.Include.NON_NULL) //NULL 필드 가림
-public class NoticeResponseDto {
+public class NoticeResponseDto implements Serializable {
     private Long noticeId;
 
     private String title;
