@@ -56,7 +56,7 @@ public class TokenProvider implements InitializingBean {
     }
 
     // accessToken
-    public String generateAccessToken(String email) {
+    public String generateAccessToken(String email, String role) {
 
         //권한 가져오기
         final Date now = new Date();
@@ -65,7 +65,7 @@ public class TokenProvider implements InitializingBean {
         return Jwts.builder()
                 .setIssuedAt(now) // 생성일자 지정(현재)
                 .setSubject(email) // 사용자(principal => email)
-                .claim(AUTHORITIES_KEY, "ROLE_USER") //권한 설정
+                .claim(AUTHORITIES_KEY, role) //권한 설정
                 .setExpiration(accessTokenExpiresIn) // 만료일자
                 .signWith(key, SignatureAlgorithm.HS512) // signature에 들어갈 secret 값 세팅
                 .compact();
@@ -91,10 +91,10 @@ public class TokenProvider implements InitializingBean {
     }
 
     // 로그인시 토큰 생성
-    public TokenResponseDto generateToken(String email)
+    public TokenResponseDto generateToken(String email, String role)
             throws HttpServerErrorException.InternalServerError {
         //권한 가져오기
-        final String accessToken = generateAccessToken(email);
+        final String accessToken = generateAccessToken(email, role);
         final String refreshToken = generateRefreshToken(email);
 
         return TokenResponseDto.builder()

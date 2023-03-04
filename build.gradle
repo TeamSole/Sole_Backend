@@ -64,6 +64,9 @@ dependencies {
 
 	// cache
 	implementation 'org.springframework.boot:spring-boot-starter-cache'
+
+	// bouncy castle
+	implementation group: 'org.bouncycastle', name: 'bcpkix-jdk14', version: '1.55'
 }
 
 test {
