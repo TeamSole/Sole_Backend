@@ -1,6 +1,8 @@
 package com.team6.sole.domain.member.entity;
 
 import com.team6.sole.domain.follow.entity.Follow;
+import com.team6.sole.domain.home.entity.Course;
+import com.team6.sole.domain.home.entity.relation.CourseMember;
 import com.team6.sole.domain.member.model.Role;
 import com.team6.sole.domain.member.model.Social;
 import com.team6.sole.domain.notice.entity.Notice;
@@ -48,6 +50,12 @@ public class Member {
     @OneToOne(fetch = FetchType.LAZY)
     private Accept accept;
 
+    @OneToMany(mappedBy = "writer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Course> courses = new ArrayList<>();
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<CourseMember> courseMembers = new ArrayList<>();
+
     @OneToMany(mappedBy = "fromMember", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Follow> fromFollows = new ArrayList<>();
 
@@ -79,7 +87,8 @@ public class Member {
     public Member(Long memberId, String socialId, String password,
                   String nickname, String profileImgUrl, String description, String fcmToken,
                   Social social, Role role, FollowInfo followInfo, NotificationInfo notificationInfo,
-                  Accept accept, List<Follow> fromFollows, List<Follow> toFollows,
+                  Accept accept, List<Course> courses, List<CourseMember> courseMembers,
+                  List<Follow> fromFollows, List<Follow> toFollows,
                   List<Notice> notices, List<Notification> notifications) {
         this.memberId = memberId;
         this.socialId = socialId;
@@ -93,6 +102,8 @@ public class Member {
         this.followInfo = followInfo;
         this.notificationInfo = notificationInfo;
         this.accept = accept;
+        this.courses = courses;
+        this.courseMembers = courseMembers;
         this.fromFollows = fromFollows;
         this.toFollows = toFollows;
         this.notices = notices;
