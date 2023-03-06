@@ -42,3 +42,5 @@ out/
 
 src/test/java/com/team6/sole/SsolBackendApplicationTests.java
 /src/main/resources/AuthKey_8N7FLJNRMM.p8
+
+src/main/resources/logback-spring.xml
