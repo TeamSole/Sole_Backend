@@ -3,6 +3,7 @@ package com.team6.sole.domain.notice;
 import com.team6.sole.domain.notice.dto.NoticeRequestDto;
 import com.team6.sole.domain.notice.dto.NoticeResponseDto;
 import com.team6.sole.global.config.CommonApiResponse;
+import com.team6.sole.infra.notification.NotificationService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -50,5 +51,11 @@ public class NoticeApiController {
             @PathVariable Long noticeId,
             @RequestBody NoticeRequestDto noticeRequestDto) {
         return ResponseEntity.ok(CommonApiResponse.of(noticeService.modNotice(noticeId, noticeRequestDto)));
+    }
+
+    @GetMapping("test")
+    public ResponseEntity<CommonApiResponse<String>> test(
+            @ApiIgnore Authentication authentication) {
+        return ResponseEntity.ok(CommonApiResponse.of(noticeService.test(authentication.getName())));
     }
 }
