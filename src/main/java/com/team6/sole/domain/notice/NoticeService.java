@@ -9,6 +9,8 @@ import com.team6.sole.domain.notice.entity.Notice;
 import com.team6.sole.domain.notice.event.NoticeEvent;
 import com.team6.sole.global.error.ErrorCode;
 import com.team6.sole.global.error.exception.NotFoundException;
+import com.team6.sole.infra.notification.NotificationService;
+import com.team6.sole.infra.notification.model.NotificationType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -28,6 +30,7 @@ public class NoticeService {
     private final NoticeRepository noticeRepository;
     private final MemberRepository memberRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final NotificationService notificationService;
 
     // 공지사항 등록
     @Transactional
@@ -85,5 +88,16 @@ public class NoticeService {
         notice.modNotice(noticeRequestDto.getTitle(), noticeRequestDto.getContent());
 
         return NoticeResponseDto.of(notice);
+    }
+
+    // 알림 테스트
+    @Transactional
+    public String test(String socialId) {
+        Member member = memberRepository.findBySocialId(socialId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+
+        notificationService.createNotification(member, "테스트", "테스트", NotificationType.MARKETING);
+
+        return "알림 테스트 성공...!";
     }
 }
