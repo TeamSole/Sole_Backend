@@ -1,5 +1,8 @@
 package com.team6.sole.domain.member.dto;
 
+import com.team6.sole.domain.home.model.PlaceCategory;
+import com.team6.sole.domain.home.model.TransCategory;
+import com.team6.sole.domain.home.model.WithCategory;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -8,6 +11,7 @@ import lombok.Setter;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -28,10 +32,21 @@ public class MemberRequestDto {
 
     @ApiModelProperty(value = "마케팅 정보 수신 및 동의", example = "false")
     private boolean marketingAccepted;
+
+    @ApiModelProperty(value = "장소 카테고리")
+    private Set<PlaceCategory> placeCategories;
+
+    @ApiModelProperty(value = "함께하는 사람 카테로기")
+    private Set<WithCategory> withCategories;
+
+    @ApiModelProperty(value = "대중교통 카테고리")
+    private Set<TransCategory> transCategories;
     
     @ApiModelProperty(value = "소셜 어세스토큰")
     private String accessToken;
 
     @ApiModelProperty(value = "fcm 토큰")
     private String fcmToken;
+
+
 }

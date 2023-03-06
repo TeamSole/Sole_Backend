@@ -1,5 +1,6 @@
 package com.team6.sole.domain.member;
 
+import com.team6.sole.domain.home.entity.Category;
 import com.team6.sole.domain.member.dto.*;
 import com.team6.sole.domain.member.entity.Accept;
 import com.team6.sole.domain.member.entity.FollowInfo;
@@ -113,6 +114,13 @@ public class MemberService {
                                 ? null
                                 : awsS3Service.uploadImage(multipartFile, "member"))
                 .accept(accept)
+                .favoriteCategory(
+                        Category.builder()
+                                .placeCategories(memberRequestDto.getPlaceCategories())
+                                .withCategories(memberRequestDto.getWithCategories())
+                                .transCategories(memberRequestDto.getTransCategories())
+                                .build()
+                )
                 .description(null)
                 .followInfo(
                         FollowInfo.builder()
