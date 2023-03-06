@@ -67,6 +67,9 @@ dependencies {
 
 	// bouncy castle
 	implementation group: 'org.bouncycastle', name: 'bcpkix-jdk14', version: '1.55'
+
+	// slack logback
+	implementation 'com.github.maricn:logback-slack-appender:1.4.0'
 }
 
 test {
