@@ -9,8 +9,11 @@ import com.team6.sole.domain.notice.entity.Notice;
 import com.team6.sole.domain.notice.event.NoticeEvent;
 import com.team6.sole.global.error.ErrorCode;
 import com.team6.sole.global.error.exception.NotFoundException;
+import com.team6.sole.infra.notification.NotificationService;
+import com.team6.sole.infra.notification.model.NotificationType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
@@ -27,6 +30,7 @@ public class NoticeService {
     private final NoticeRepository noticeRepository;
     private final MemberRepository memberRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final NotificationService notificationService;
 
     // 공지사항 등록
     @Transactional
@@ -55,7 +59,7 @@ public class NoticeService {
     
     // 공지사항 조회
     @Transactional(readOnly = true)
-    @Cacheable("notices")
+    @Cacheable(value = "notices")
     public List<NoticeResponseDto> showNotices() {
         List<Notice> notices = noticeRepository.findAll();
         
@@ -76,7 +80,7 @@ public class NoticeService {
     
     // 공지사항 수정
     @Transactional
-    @CachePut(value = "notices", key = "#noticeId")
+    @CacheEvict(value = "notices", allEntries = true)
     public NoticeResponseDto modNotice(Long noticeId, NoticeRequestDto noticeRequestDto) {
         Notice notice = noticeRepository.findById(noticeId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.NOTICE_NOT_FOUND));
@@ -84,5 +88,16 @@ public class NoticeService {
         notice.modNotice(noticeRequestDto.getTitle(), noticeRequestDto.getContent());
 
         return NoticeResponseDto.of(notice);
+    }
+
+    // 알림 테스트
+    @Transactional
+    public String test(String socialId) {
+        Member member = memberRepository.findBySocialId(socialId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+
+        notificationService.createNotification(member, "테스트", "테스트", NotificationType.MARKETING);
+
+        return "알림 테스트 성공...!";
     }
 }
