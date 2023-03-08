@@ -1,6 +1,7 @@
 package com.team6.sole.domain.follow.dto;
 
 import com.team6.sole.domain.follow.entity.Follow;
+import com.team6.sole.domain.follow.model.FollowStatus;
 import com.team6.sole.domain.member.dto.MemberResponseDto;
 import lombok.*;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -12,25 +13,39 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 public class FollowResponseDto {
     private Long followId;
 
-    private MemberResponseDto toMember;
+    private MemberResponseDto member;
+
+    private FollowStatus followStatus;
 
     private int followerCount;
 
     private int followingCount;
 
     @Builder
-    public FollowResponseDto(Long followId, MemberResponseDto toMember,
+    public FollowResponseDto(Long followId, MemberResponseDto member, FollowStatus followStatus,
                              int followerCount, int followingCount) {
         this.followId = followId;
-        this.toMember = toMember;
+        this.member = member;
+        this.followStatus = followStatus;
         this.followerCount = followerCount;
         this.followingCount = followingCount;
     }
 
-    public static FollowResponseDto of(Follow follow) {
+    public static FollowResponseDto ofFollowing(Follow follow) {
         return FollowResponseDto.builder()
                 .followId(follow.getFollowId())
-                .toMember(MemberResponseDto.of(follow.getToMember()))
+                .member(MemberResponseDto.of(follow.getToMember()))
+                .followStatus(FollowStatus.FOLLOWING)
+                .followerCount(follow.getToMember().getFollowInfo().getFollower())
+                .followingCount(follow.getToMember().getFollowInfo().getFollowing())
+                .build();
+    }
+
+    public static FollowResponseDto ofFollower(Follow follow, FollowStatus followStatus) {
+        return FollowResponseDto.builder()
+                .followId(follow.getFollowId())
+                .member(MemberResponseDto.of(follow.getFromMember()))
+                .followStatus(followStatus)
                 .followerCount(follow.getToMember().getFollowInfo().getFollower())
                 .followingCount(follow.getToMember().getFollowInfo().getFollowing())
                 .build();

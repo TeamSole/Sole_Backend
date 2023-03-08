@@ -10,7 +10,9 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
 
     List<Follow> findByFromMember_SocialId(String socialId);
 
-    int countByToMember_MemberId(Long toMemberId);
+    List<Follow> findByToMember_SocialId(String socialId);
 
-    int countByFromMember_MemberId(Long fromMemberId);
+    boolean existsByFromMember_SocialIdAndToMember_SocialId(String fromMemberSocialId, String toMemberSocialId);
+
+    boolean existsByFromMember_MemberIdAndToMember_MemberId(Long fromMemberId, Long toMemberId);
 }
