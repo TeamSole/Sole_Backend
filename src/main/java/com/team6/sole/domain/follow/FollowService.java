@@ -3,6 +3,7 @@ package com.team6.sole.domain.follow;
 import com.team6.sole.domain.follow.dto.FollowResponseDto;
 import com.team6.sole.domain.follow.entity.Follow;
 import com.team6.sole.domain.follow.event.FollowEvent;
+import com.team6.sole.domain.follow.model.FollowStatus;
 import com.team6.sole.domain.member.MemberRepository;
 import com.team6.sole.domain.member.entity.Member;
 import com.team6.sole.global.error.ErrorCode;
@@ -26,13 +27,27 @@ public class FollowService {
 
     // 팔로잉 보기
     @Transactional(readOnly = true)
-    public List<FollowResponseDto> showFollows(String socialId) {
-        List<Follow> follows = followRepository.findByFromMember_SocialId(socialId);
+    public List<FollowResponseDto> showFollowings(String socialId) {
+        List<Follow> followings = followRepository.findByFromMember_SocialId(socialId);
 
-        return follows.stream()
-                .map(FollowResponseDto::of)
+        return followings.stream()
+                .map(FollowResponseDto::ofFollowing)
                 .collect(Collectors.toList());
     }
+
+    // 팔로워 보기
+    @Transactional(readOnly = true)
+    public List<FollowResponseDto> showFollowers(String socialId) {
+        List<Follow> follwers = followRepository.findByToMember_SocialId(socialId);
+
+        return follwers.stream()
+                .map(follower -> FollowResponseDto.ofFollower(
+                        follower,
+                        followRepository.existsByFromMember_SocialIdAndToMember_SocialId(follower.getFromMember().getSocialId(), socialId)
+                ? FollowStatus.FOLLOWING : FollowStatus.NOT_FOLLOW))
+                .collect(Collectors.toList());
+    }
+
 
     // 팔로우
     @Transactional
