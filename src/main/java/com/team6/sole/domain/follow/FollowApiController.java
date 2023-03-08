@@ -19,11 +19,18 @@ import java.util.List;
 public class FollowApiController {
     private final FollowService followService;
 
-    @GetMapping
+    @GetMapping("followings")
     @ApiOperation(value = "팔로잉 보기")
-    public ResponseEntity<CommonApiResponse<List<FollowResponseDto>>> showFollows(
+    public ResponseEntity<CommonApiResponse<List<FollowResponseDto>>> showFollowings(
             @ApiIgnore Authentication authentication) {
-        return ResponseEntity.ok(CommonApiResponse.of(followService.showFollows(authentication.getName())));
+        return ResponseEntity.ok(CommonApiResponse.of(followService.showFollowings(authentication.getName())));
+    }
+
+    @GetMapping("followers")
+    @ApiOperation(value = "팔로워 보기")
+    public ResponseEntity<CommonApiResponse<List<FollowResponseDto>>> showFollowers(
+            @ApiIgnore Authentication authentication) {
+        return ResponseEntity.ok(CommonApiResponse.of(followService.showFollowers(authentication.getName())));
     }
 
     @PostMapping("follow/{toMemberId}")
