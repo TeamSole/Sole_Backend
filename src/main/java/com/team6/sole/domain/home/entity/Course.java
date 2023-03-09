@@ -1,6 +1,9 @@
 package com.team6.sole.domain.home.entity;
 
 import com.team6.sole.domain.home.entity.relation.CourseMember;
+import com.team6.sole.domain.home.model.PlaceCategory;
+import com.team6.sole.domain.home.model.TransCategory;
+import com.team6.sole.domain.home.model.WithCategory;
 import com.team6.sole.domain.member.entity.Member;
 import com.team6.sole.global.config.entity.BaseTimeEntity;
 import lombok.AccessLevel;
@@ -12,6 +15,7 @@ import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -35,11 +39,20 @@ public class Course extends BaseTimeEntity {
 
     private int distance;
 
-    @Embedded
-    private Category category;
+    @ElementCollection(fetch = FetchType.LAZY) @Enumerated(EnumType.STRING)
+    Set<PlaceCategory> placeCategories;
+
+    @ElementCollection(fetch = FetchType.LAZY) @Enumerated(EnumType.STRING)
+    Set<WithCategory> withCategories;
+
+    @ElementCollection(fetch = FetchType.LAZY) @Enumerated(EnumType.STRING)
+    Set<TransCategory> transCategories;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Member writer;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Member member;
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Place> places = new ArrayList<>();
@@ -51,11 +64,20 @@ public class Course extends BaseTimeEntity {
         this.getPlaces().add(place);
     }
 
+    public void addScrapCount() {
+        this.scrapCount++;
+    }
+
+    public void removeScrapCount() {
+        this.scrapCount--;
+    }
+
     @Builder
     public Course(Long courseId, String thumbnailUrl, int scrapCount,
                   String title, String description, Date startDate,
-                  int duration, int distance, Category category, Member writer,
-                  List<Place> places, List<CourseMember> courseMembers) {
+                  int duration, int distance,
+                  Set<PlaceCategory> placeCategories, Set<WithCategory> withCategories, Set<TransCategory> transCategories,
+                  Member writer, Member member, List<Place> places, List<CourseMember> courseMembers) {
         this.courseId = courseId;
         this.thumbnailUrl = thumbnailUrl;
         this.scrapCount = scrapCount;
@@ -64,8 +86,11 @@ public class Course extends BaseTimeEntity {
         this.startDate = startDate;
         this.duration = duration;
         this.distance = distance;
-        this.category = category;
+        this.placeCategories = placeCategories;
+        this.withCategories = withCategories;
+        this.transCategories = transCategories;
         this.writer = writer;
+        this.member = member;
         this.places = places;
         this.courseMembers = courseMembers;
     }

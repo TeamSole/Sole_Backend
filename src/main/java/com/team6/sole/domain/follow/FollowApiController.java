@@ -1,5 +1,7 @@
 package com.team6.sole.domain.follow;
 
+import com.team6.sole.domain.follow.dto.FollowDetailResponseDto;
+import com.team6.sole.domain.follow.dto.FollowInfoResponseDto;
 import com.team6.sole.domain.follow.dto.FollowResponseDto;
 import com.team6.sole.global.config.CommonApiResponse;
 import io.swagger.annotations.Api;
@@ -19,6 +21,13 @@ import java.util.List;
 public class FollowApiController {
     private final FollowService followService;
 
+    @GetMapping
+    @ApiOperation(value = "팔로잉 하는 사람들 코스 보기")
+    public ResponseEntity<CommonApiResponse<List<FollowDetailResponseDto>>> showFollowingsCourses(
+            @ApiIgnore Authentication authentication) {
+        return ResponseEntity.ok(CommonApiResponse.of(followService.showFollwingCourses(authentication.getName())));
+    }
+
     @GetMapping("followings")
     @ApiOperation(value = "팔로잉 보기")
     public ResponseEntity<CommonApiResponse<List<FollowResponseDto>>> showFollowings(
@@ -31,6 +40,15 @@ public class FollowApiController {
     public ResponseEntity<CommonApiResponse<List<FollowResponseDto>>> showFollowers(
             @ApiIgnore Authentication authentication) {
         return ResponseEntity.ok(CommonApiResponse.of(followService.showFollowers(authentication.getName())));
+    }
+
+    @GetMapping("{followInfoMemberSocialId}")
+    @ApiOperation(value = "팔로우 상대 상세정보 확인")
+    public ResponseEntity<CommonApiResponse<FollowInfoResponseDto>> showFollowInfo(
+            @ApiIgnore Authentication authentication,
+            @PathVariable String followInfoMemberSocialId,
+            @RequestParam(required = false) Long courseId) {
+        return ResponseEntity.ok(CommonApiResponse.of(followService.showFollowInfo(authentication.getName(), followInfoMemberSocialId, courseId)));
     }
 
     @PostMapping("follow/{toMemberId}")

@@ -8,27 +8,23 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.ElementCollection;
-import javax.persistence.Embeddable;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
+import javax.persistence.*;
 import java.util.Set;
 
 @Embeddable
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Category {
-    @ElementCollection @Enumerated(EnumType.STRING)
+    @ElementCollection(fetch = FetchType.LAZY) @Enumerated(EnumType.STRING)
     Set<PlaceCategory> placeCategories;
 
-    @ElementCollection @Enumerated(EnumType.STRING)
+    @ElementCollection(fetch = FetchType.LAZY) @Enumerated(EnumType.STRING)
     Set<WithCategory> withCategories;
 
-    @ElementCollection @Enumerated(EnumType.STRING)
+    @ElementCollection(fetch = FetchType.LAZY) @Enumerated(EnumType.STRING)
     Set<TransCategory> transCategories;
 
     @Builder
-
     public Category(Set<PlaceCategory> placeCategories, Set<WithCategory> withCategories, Set<TransCategory> transCategories) {
         this.placeCategories = placeCategories;
         this.withCategories = withCategories;

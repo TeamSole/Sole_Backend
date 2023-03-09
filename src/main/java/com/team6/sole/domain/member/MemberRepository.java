@@ -1,5 +1,6 @@
 package com.team6.sole.domain.member;
 
+import com.team6.sole.domain.home.entity.Course;
 import com.team6.sole.domain.member.entity.Member;
 import com.team6.sole.domain.member.model.Role;
 import com.team6.sole.domain.member.model.Social;
