@@ -20,10 +20,13 @@ public class Gps {
     // 경도
     private double longitude;
 
+    private double distance;
+
     @Builder
-    public Gps(String address, double latitude, double longitude) {
+    public Gps(String address, double latitude, double longitude, double distance) {
         this.address = address;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.distance = distance;
     }
 }
