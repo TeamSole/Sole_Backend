@@ -1,9 +1,15 @@
 package com.team6.sole.domain.follow;
 
+import com.team6.sole.domain.follow.dto.FollowDetailResponseDto;
+import com.team6.sole.domain.follow.dto.FollowInfoResponseDto;
 import com.team6.sole.domain.follow.dto.FollowResponseDto;
 import com.team6.sole.domain.follow.entity.Follow;
 import com.team6.sole.domain.follow.event.FollowEvent;
 import com.team6.sole.domain.follow.model.FollowStatus;
+import com.team6.sole.domain.home.dto.HomeResponseDto;
+import com.team6.sole.domain.home.entity.Course;
+import com.team6.sole.domain.home.repository.CourseCustomRepository;
+import com.team6.sole.domain.home.repository.CourseRepository;
 import com.team6.sole.domain.member.MemberRepository;
 import com.team6.sole.domain.member.entity.Member;
 import com.team6.sole.global.error.ErrorCode;
@@ -14,6 +20,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,7 +30,26 @@ import java.util.stream.Collectors;
 public class FollowService {
     private final FollowRepository followRepository;
     private final MemberRepository memberRepository;
+    private final CourseRepository courseRepository;
+    private final CourseCustomRepository courseCustomRepository;
     private final ApplicationEventPublisher applicationEventPublisher;
+    
+    // 팔로잉하는 사람들 작성한 코스 보기
+    @Transactional(readOnly = true)
+    public List<FollowDetailResponseDto> showFollwingCourses(String socialId) {
+        List<Member> followings = followRepository.findByFromMember_SocialId(socialId).stream()
+                .map(Follow::getToMember)
+                .collect(Collectors.toList());
+
+        List<Course> followingsCourses = courseRepository.findByWriterIn(followings);
+
+        return followingsCourses.stream()
+                .map(course -> FollowDetailResponseDto.of(
+                        course.getWriter(),
+                        followRepository.existsByFromMember_SocialIdAndToMember_SocialId(socialId, course.getWriter().getSocialId()),
+                        course))
+                .collect(Collectors.toList());
+    }
 
     // 팔로잉 보기
     @Transactional(readOnly = true)
@@ -38,9 +64,9 @@ public class FollowService {
     // 팔로워 보기
     @Transactional(readOnly = true)
     public List<FollowResponseDto> showFollowers(String socialId) {
-        List<Follow> follwers = followRepository.findByToMember_SocialId(socialId);
+        List<Follow> followers = followRepository.findByToMember_SocialId(socialId);
 
-        return follwers.stream()
+        return followers.stream()
                 .map(follower -> FollowResponseDto.ofFollower(
                         follower,
                         followRepository.existsByFromMember_SocialIdAndToMember_SocialId(follower.getFromMember().getSocialId(), socialId)
@@ -48,6 +74,26 @@ public class FollowService {
                 .collect(Collectors.toList());
     }
 
+    // 팔로잉 상세정보
+    @Transactional(readOnly = true)
+    public FollowInfoResponseDto showFollowInfo(String socialId, String followInfoId, Long courseId) {
+        Member followInfoMember = memberRepository.findBySocialId(followInfoId)
+                .orElseThrow(() -> new BadRequestException(ErrorCode.MEMBER_NOT_FOUND));
+
+        FollowInfoResponseDto followInfoResponseDto = FollowInfoResponseDto.of(followInfoMember);
+        // 인기 코스 set
+        followInfoResponseDto.setPopularCourse((HomeResponseDto) followInfoMember.getCourses().stream()
+                .map(popular -> HomeResponseDto.of(popular, followRepository.existsByFromMember_SocialIdAndToMember_SocialId(socialId, followInfoMember.getSocialId())))
+                .limit(1));
+        // 최근 코스들 set
+        followInfoResponseDto.setRecentCourses(courseCustomRepository.findAllByWriter(courseId, followInfoMember).stream()
+                .map(recent -> HomeResponseDto.of(
+                        recent,
+                        followRepository.existsByFromMember_SocialIdAndToMember_SocialId(socialId, followInfoMember.getSocialId())))
+                .collect(Collectors.toList()));
+
+        return followInfoResponseDto;
+    }
 
     // 팔로우
     @Transactional

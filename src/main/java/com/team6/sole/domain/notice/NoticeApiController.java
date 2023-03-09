@@ -3,7 +3,6 @@ package com.team6.sole.domain.notice;
 import com.team6.sole.domain.notice.dto.NoticeRequestDto;
 import com.team6.sole.domain.notice.dto.NoticeResponseDto;
 import com.team6.sole.global.config.CommonApiResponse;
-import com.team6.sole.infra.notification.NotificationService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
