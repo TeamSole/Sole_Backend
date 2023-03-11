@@ -8,6 +8,7 @@ import com.team6.sole.domain.home.entity.relation.CourseMember;
 import com.team6.sole.domain.member.model.Role;
 import com.team6.sole.domain.member.model.Social;
 import com.team6.sole.domain.notice.entity.Notice;
+import com.team6.sole.domain.scrap.entity.ScrapFolder;
 import com.team6.sole.infra.notification.entity.Notification;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -79,6 +80,9 @@ public class Member {
     @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Notification> notifications = new ArrayList<>();
 
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ScrapFolder> scrapFolders = new ArrayList<>();
+
     public void modMypage(String profileImgUrl, String nickname, String description) {
         this.profileImgUrl = profileImgUrl;
         this.nickname = nickname;
@@ -113,7 +117,7 @@ public class Member {
                   FollowInfo followInfo, NotificationInfo notificationInfo, Category favoriteCategory, Gps currentGps,
                   Accept accept, List<Course> courses, List<Course> recommendCourses, List<CourseMember> courseMembers,
                   List<Follow> fromFollows, List<Follow> toFollows,
-                  List<Notice> notices, List<Notification> notifications) {
+                  List<Notice> notices, List<Notification> notifications, List<ScrapFolder> scrapFolders) {
         this.memberId = memberId;
         this.socialId = socialId;
         this.password = password;
@@ -135,5 +139,6 @@ public class Member {
         this.toFollows = toFollows;
         this.notices = notices;
         this.notifications = notifications;
+        this.scrapFolders = scrapFolders;
     }
 }

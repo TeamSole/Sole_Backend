@@ -67,6 +67,9 @@ public enum ErrorCode {
     /* 알림 관련 오류 */
     CANNOT_CREATE_TUPLE(INTERNAL_SERVER_ERROR, "DB000", "새로운 인스턴스 생성을 실패했습니다"),
 
+    /* 스크랩 관련 오류 */
+    SCRAP_FOLDER_NOT_FOUND(NOT_FOUND, "S000", "해당 스크랩 폴더를 찾을 수 없습니다"),
+
     /* 홈 관련 오류 */
     COURSE_NOT_FOUND(NOT_FOUND, "C000", "해당 코스를 찾을 수 없습니다"),
 
