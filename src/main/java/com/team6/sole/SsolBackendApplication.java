@@ -6,10 +6,12 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableJpaAuditing
-@EnableCaching
+@EnableCaching		// 캐싱
+@EnableScheduling	// 스케줄러
 public class SsolBackendApplication extends SpringBootServletInitializer {
 
 	// ec2 404에러 해결 코드

@@ -57,9 +57,9 @@ public class CourseResponseDto {
 
     public static CourseResponseDto of(Course course) {
         Set<Enum> mergedSet = new HashSet<>();
-        mergedSet.addAll(course.getCategory().getPlaceCategories());
-        mergedSet.addAll(course.getCategory().getWithCategories());
-        mergedSet.addAll(course.getCategory().getTransCategories());
+        mergedSet.addAll(course.getPlaceCategories());
+        mergedSet.addAll(course.getWithCategories());
+        mergedSet.addAll(course.getTransCategories());
 
         DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
 
