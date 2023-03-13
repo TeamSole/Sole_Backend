@@ -8,6 +8,8 @@ import com.team6.sole.domain.member.entity.Member;
 import com.team6.sole.domain.member.entity.NotificationInfo;
 import com.team6.sole.domain.member.model.Role;
 import com.team6.sole.domain.member.model.Social;
+import com.team6.sole.domain.scrap.ScrapFolderRespository;
+import com.team6.sole.domain.scrap.entity.ScrapFolder;
 import com.team6.sole.global.config.CommonApiResponse;
 import com.team6.sole.global.config.s3.AwsS3ServiceImpl;
 import com.team6.sole.global.config.security.dto.TokenResponseDto;
@@ -30,12 +32,14 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class MemberService {
+    private final ScrapFolderRespository scrapFolderRespository;
     private final MemberRepository memberRepository;
     private final AcceptRepository acceptRepository;
     private final AwsS3ServiceImpl awsS3Service;
@@ -141,7 +145,13 @@ public class MemberService {
                                 ? null
                                 : memberRequestDto.getFcmToken())
                 .build();
-        memberRepository.save(member);
+        memberRepository.saveAndFlush(member);
+        
+        ScrapFolder scrapFolder = ScrapFolder.builder()
+                .scrapFolderName("기본 폴더")
+                .member(member)
+                .build();
+        scrapFolderRespository.saveAndFlush(scrapFolder);
 
         HttpHeaders httpHeaders = new HttpHeaders();
         TokenResponseDto tokenResponseDTO = tokenProvider.generateToken(socialId, member.getRole().name());
