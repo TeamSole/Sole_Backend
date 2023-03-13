@@ -181,37 +181,31 @@ public class HomeService {
         courseRepository.delete(course);
     }
     
-    // 코스 스크랩
+    // 코스 스크랩 및 취소
     @Async("home")
     @Transactional
     public synchronized void scrapCourse(String socialId, Long courseId) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.COURSE_NOT_FOUND));
+        Optional<CourseMember> checkCourseMember = courseMemberRepository.findByMember_SocialIdAndCourse_CourseId(socialId, courseId);
 
-        CourseMember courseMember = CourseMember.builder()
-                .member(member)
-                .course(course)
-                .build();
-        courseMemberRepository.saveAndFlush(courseMember);
+        if (checkCourseMember.isPresent()) {
+            courseMemberRepository.deleteByMember_SocialIdAndCourse_CourseId(socialId, courseId);
+            checkCourseMember.get().getCourse().removeScrapCount();
+            courseRepository.saveAndFlush(checkCourseMember.get().getCourse());
+        } else {
+            Member member = memberRepository.findBySocialId(socialId)
+                    .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+            Course course = courseRepository.findById(courseId)
+                    .orElseThrow(() -> new NotFoundException(ErrorCode.COURSE_NOT_FOUND));
 
-        course.addScrapCount();
-        courseRepository.saveAndFlush(course);
-    }
+            CourseMember courseMember = CourseMember.builder()
+                    .member(member)
+                    .course(course)
+                    .build();
+            courseMemberRepository.saveAndFlush(courseMember);
 
-    // 코스 스크랩 취소
-    @Async("home")
-    @Transactional
-    public synchronized void scrapCancelCourse(String socialId, Long courseId) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.COURSE_NOT_FOUND));
-
-        courseMemberRepository.deleteByMemberAndCourse(member, course);
-        course.removeScrapCount();
-        courseRepository.saveAndFlush(course);
+            course.addScrapCount();
+            courseRepository.saveAndFlush(course);
+        }
     }
 
     // 선호 카테고리 보기
