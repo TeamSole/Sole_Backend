@@ -83,20 +83,11 @@ public class HomeApiController {
     }
 
     @PostMapping("{courseId}/scrap")
-    @ApiOperation(value = "코스 스크랩")
+    @ApiOperation(value = "코스 스크랩 및 취소")
     public ResponseEntity<Void> scrapCourse(
             @ApiIgnore Authentication authentication,
             @PathVariable Long courseId) {
         homeService.scrapCourse(authentication.getName(), courseId);
-        return ResponseEntity.ok().build();
-    }
-
-    @DeleteMapping("{courseId}/unscrap")
-    @ApiOperation(value = "코스 스크랩 취소")
-    public ResponseEntity<Void> scrapCancelCourse(
-            @ApiIgnore Authentication authentication,
-            @PathVariable Long courseId) {
-        homeService.scrapCancelCourse(authentication.getName(), courseId);
         return ResponseEntity.ok().build();
     }
 
