@@ -43,6 +43,7 @@ public class CourseCustomRepository {
                 .fetch();
     }
 
+    // 홈 검색
     public List<Course> findAllByTitleContaining(Long courseId, String title) {
         // 1. id < 파라미터를 첫 페이지에선 사용하지 않기 위한 동적 쿼리
         BooleanBuilder dynamicLtId = new BooleanBuilder();
@@ -74,6 +75,32 @@ public class CourseCustomRepository {
                         .and(QCourse.course.writer.eq(writer)))
                 .orderBy(QCourse.course.createdAt.desc())
                 .limit(10)
+                .fetch();
+    }
+
+    // 홈 보기
+    public List<Course> findAllByCatgegoryAndWriter(Long courseId,
+                                           Member writer,
+                                           Set<PlaceCategory> placeCategories,
+                                           Set<WithCategory> withCategories,
+                                           Set<TransCategory> transCategories) {
+
+        // 1. id < 파라미터를 첫 페이지에선 사용하지 않기 위한 동적 쿼리
+        BooleanBuilder dynamicLtId = new BooleanBuilder();
+
+        if (courseId != null) {
+            dynamicLtId.and(QCourse.course.courseId.lt(courseId));
+        }
+
+        return jpaQueryFactory
+                .selectFrom(QCourse.course)
+                .where(dynamicLtId // 동적 쿼리
+                        .or(QCourse.course.placeCategories.any().in(placeCategories))
+                        .or(QCourse.course.withCategories.any().in(withCategories))
+                        .or(QCourse.course.transCategories.any().in(transCategories))
+                        .and(QCourse.course.writer.eq(writer)))
+                .orderBy(QCourse.course.courseId.desc())
+                .limit(5)
                 .fetch();
     }
 }

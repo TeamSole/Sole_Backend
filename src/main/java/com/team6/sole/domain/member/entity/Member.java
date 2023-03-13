@@ -9,6 +9,7 @@ import com.team6.sole.domain.member.model.Role;
 import com.team6.sole.domain.member.model.Social;
 import com.team6.sole.domain.notice.entity.Notice;
 import com.team6.sole.domain.scrap.entity.ScrapFolder;
+import com.team6.sole.global.config.entity.BaseTimeEntity;
 import com.team6.sole.infra.notification.entity.Notification;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -22,7 +23,7 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Member {
+public class Member extends BaseTimeEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long memberId;
 
