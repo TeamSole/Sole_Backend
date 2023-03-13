@@ -4,6 +4,7 @@ import com.team6.sole.domain.follow.entity.Follow;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface FollowRepository extends JpaRepository<Follow, Long> {
     void deleteByFollowId(Long followId);
@@ -15,4 +16,8 @@ public interface FollowRepository extends JpaRepository<Follow, Long> {
     boolean existsByFromMember_SocialIdAndToMember_SocialId(String fromMemberSocialId, String toMemberSocialId);
 
     boolean existsByFromMember_MemberIdAndToMember_MemberId(Long fromMemberId, Long toMemberId);
+
+    Optional<Follow> findByFromMember_MemberIdAndToMember_MemberId(Long fromMemberId, Long toMemberId);
+
+    void deleteByFromMember_MemberIdAndToMember_MemberId(Long fromMemberId, Long toMemberId);
 }
