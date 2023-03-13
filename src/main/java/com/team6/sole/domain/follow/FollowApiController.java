@@ -25,7 +25,7 @@ public class FollowApiController {
     @ApiOperation(value = "팔로잉 하는 사람들 코스 보기")
     public ResponseEntity<CommonApiResponse<List<FollowDetailResponseDto>>> showFollowingsCourses(
             @ApiIgnore Authentication authentication) {
-        return ResponseEntity.ok(CommonApiResponse.of(followService.showFollwingCourses(authentication.getName())));
+        return ResponseEntity.ok(CommonApiResponse.of(followService.showFollowingCourses(authentication.getName())));
     }
 
     @GetMapping("followings")
@@ -52,17 +52,10 @@ public class FollowApiController {
     }
 
     @PostMapping("follow/{toMemberId}")
-    @ApiOperation(value = "팔로우")
+    @ApiOperation(value = "팔로우 및 언팔로우")
     public ResponseEntity<CommonApiResponse<String>> toFollow(
             @ApiIgnore Authentication authentication,
             @PathVariable Long toMemberId) {
         return ResponseEntity.ok(CommonApiResponse.of(followService.toFollow(authentication.getName(), toMemberId)));
-    }
-
-    @DeleteMapping("unfollow/{followId}")
-    @ApiOperation(value = "언팔로우")
-    public ResponseEntity<CommonApiResponse<String>> unFollow(
-            @PathVariable Long followId) {
-        return ResponseEntity.ok(CommonApiResponse.of(followService.unFollow(followId)));
     }
 }
