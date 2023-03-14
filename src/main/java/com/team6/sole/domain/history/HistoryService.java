@@ -7,7 +7,6 @@ import com.team6.sole.domain.home.entity.Course;
 import com.team6.sole.domain.home.model.PlaceCategory;
 import com.team6.sole.domain.home.model.TransCategory;
 import com.team6.sole.domain.home.repository.CourseCustomRepository;
-import com.team6.sole.domain.home.repository.CourseRepository;
 import com.team6.sole.domain.member.MemberRepository;
 import com.team6.sole.domain.member.entity.Member;
 import com.team6.sole.global.error.ErrorCode;
