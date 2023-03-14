@@ -58,6 +58,20 @@ public class MemberResponseDto implements Serializable {
                 .build();
     }
 
+    public static MemberResponseDto ofCheck(Member member, boolean check, TokenResponseDto tokenResponseDto) {
+        return MemberResponseDto.builder()
+                .memberId(member.getMemberId())
+                .socialId(member.getSocialId())
+                .nickname(member.getNickname())
+                .profileImgUrl(member.getProfileImgUrl())
+                .social(member.getSocial())
+                .role(member.getRole())
+                .accessToken(tokenResponseDto.getAccessToken())
+                .refreshToken(tokenResponseDto.getRefreshToken())
+                .check(check)
+                .build();
+    }
+
     public static MemberResponseDto of(Member member, TokenResponseDto tokenResponseDto) {
         return MemberResponseDto.builder()
                 .memberId(member.getMemberId())

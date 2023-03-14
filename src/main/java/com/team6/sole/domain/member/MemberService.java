@@ -78,7 +78,7 @@ public class MemberService {
 
             log.info("로그인 성공");
 
-            return new ResponseEntity<>(CommonApiResponse.of(MemberResponseDto.of(checkMember.get(), tokenResponseDTO)), httpHeaders, HttpStatus.OK);
+            return new ResponseEntity<>(CommonApiResponse.of(MemberResponseDto.ofCheck(checkMember.get(), true, tokenResponseDTO)), httpHeaders, HttpStatus.OK);
         } else {
             return ResponseEntity.ok(CommonApiResponse.of(MemberResponseDto.ofSignUp(false)));
         }
