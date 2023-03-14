@@ -1,6 +1,7 @@
 package com.team6.sole.domain.member;
 
 import com.team6.sole.domain.home.entity.Category;
+import com.team6.sole.domain.home.entity.Gps;
 import com.team6.sole.domain.member.dto.*;
 import com.team6.sole.domain.member.entity.Accept;
 import com.team6.sole.domain.member.entity.FollowInfo;
@@ -144,6 +145,14 @@ public class MemberService {
                         memberRequestDto.getFcmToken() == null
                                 ? null
                                 : memberRequestDto.getFcmToken())
+                .currentGps(
+                        Gps.builder()
+                                .address(null)
+                                .latitude(0.0)
+                                .latitude(0.0)
+                                .distance(0)
+                                .build()
+                )
                 .build();
         memberRepository.saveAndFlush(member);
         
