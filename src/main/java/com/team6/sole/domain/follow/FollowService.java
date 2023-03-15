@@ -18,6 +18,7 @@ import com.team6.sole.global.error.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -91,12 +92,19 @@ public class FollowService {
                 .orElseThrow(() -> new BadRequestException(ErrorCode.MEMBER_NOT_FOUND));
 
         FollowInfoResponseDto followInfoResponseDto = FollowInfoResponseDto.of(followInfoMember);
+
         // 인기 코스 set
-        followInfoResponseDto.setPopularCourse((HomeResponseDto) followInfoMember.getCourses().stream()
-                .map(popular -> HomeResponseDto.of(
-                        popular,
-                        courseMemberRepository.existsByMemberAndCourse_CourseId(member, popular.getCourseId())))
-                .limit(1));
+        followInfoResponseDto.setPopularCourse(
+                courseRepository.existsByWriter(followInfoMember)
+                        ? courseRepository.findAllByWriter(
+                                followInfoMember,
+                                Sort.by(Sort.Direction.DESC, "scrapCount")).stream()
+                        .map(popular -> HomeResponseDto.of(
+                                popular,
+                                courseMemberRepository.existsByMemberAndCourse_CourseId(member, popular.getCourseId())))
+                        .collect(Collectors.toList()).get(0)
+                        : null);
+
         // 최근 코스들 set
         followInfoResponseDto.setRecentCourses(courseCustomRepository.findAllByWriter(courseId, followInfoMember).stream()
                 .map(recent -> HomeResponseDto.of(
