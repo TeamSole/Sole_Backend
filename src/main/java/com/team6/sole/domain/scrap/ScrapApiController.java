@@ -70,7 +70,7 @@ public class ScrapApiController {
     }
 
     @DeleteMapping("{scrapFolderId}/{courseId}")
-    @ApiOperation(value = "기본 스크랩 폴더에서 코스 삭제(스크랩 취소)")
+    @ApiOperation(value = "새 스크랩 폴더에서 코스 삭제")
     public ResponseEntity<Void> delNewScrap(
             @ApiIgnore Authentication authentication,
             @PathVariable Long scrapFolderId,
