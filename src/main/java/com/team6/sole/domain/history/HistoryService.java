@@ -4,6 +4,8 @@ import com.team6.sole.domain.history.dto.HistoryResponseDto;
 import com.team6.sole.domain.history.dto.HistorySearchRequestDto;
 import com.team6.sole.domain.home.dto.HomeResponseDto;
 import com.team6.sole.domain.home.entity.Course;
+import com.team6.sole.domain.home.entity.Gps;
+import com.team6.sole.domain.home.entity.Place;
 import com.team6.sole.domain.home.model.PlaceCategory;
 import com.team6.sole.domain.home.model.TransCategory;
 import com.team6.sole.domain.home.repository.CourseCustomRepository;
@@ -36,7 +38,11 @@ public class HistoryService {
             transCategories.addAll(course.getTransCategories());
         }
 
-        return HistoryResponseDto.of(member, makeMostPlaceCategories(placeCategories), makeMostTransCategories(transCategories));
+        return HistoryResponseDto.of(
+                member,
+                makeMostRegion(member.getCourses()),
+                makeMostPlaceCategories(placeCategories),
+                makeMostTransCategories(transCategories));
     }
 
     // 나의 기록 보기(하단)(5개 + 5n)
@@ -67,6 +73,34 @@ public class HistoryService {
                 .collect(Collectors.toList());
     }
 
+    // 장소 최빈값
+    public String makeMostRegion(List<Course> courses) {
+        List<String> regions = courses.stream()
+                .map(course -> course.getPlaces().get(0))
+                .map(Place::getGps)
+                .map(Gps::getAddress)
+                .map(address -> address.substring(0, address.indexOf("구") + 1))
+                .collect(Collectors.toList());
+
+        HashMap<String, Integer> dic = new HashMap<>();
+        for (String region : regions) {
+            int x = 1;
+            //①
+            if (dic.containsKey(region)) {
+                //③
+                x = dic.get(region) + 1;
+            }
+            //②
+            dic.put(region, x);
+        }
+
+        return dic.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                .map(Map.Entry::getKey)
+                .limit(1)
+                .collect(Collectors.toList()).get(0);
+    }
+
     // 장소 카테고리 mapToSet
     public Set<PlaceCategory> makeMostPlaceCategories(List<PlaceCategory> placeCategories) {
         HashMap<PlaceCategory, Integer> dic = new HashMap<>();
@@ -83,8 +117,9 @@ public class HistoryService {
 
         //④
         return dic.entrySet().stream()
-                .sorted(Map.Entry.comparingByValue())
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .map(Map.Entry::getKey)
+                .limit(1)
                 .collect(Collectors.toSet());
     }
 
@@ -104,8 +139,9 @@ public class HistoryService {
 
         //④
         return dic.entrySet().stream()
-                .sorted(Map.Entry.comparingByValue())
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .map(Map.Entry::getKey)
+                .limit(1)
                 .collect(Collectors.toSet());
     }
 }

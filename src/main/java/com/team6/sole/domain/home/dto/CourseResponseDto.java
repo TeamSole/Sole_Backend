@@ -61,7 +61,7 @@ public class CourseResponseDto {
         mergedSet.addAll(course.getWithCategories());
         mergedSet.addAll(course.getTransCategories());
 
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 
         return CourseResponseDto.builder()
                 .courseId(course.getCourseId())

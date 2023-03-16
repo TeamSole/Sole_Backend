@@ -147,9 +147,9 @@ public class MemberService {
                                 : memberRequestDto.getFcmToken())
                 .currentGps(
                         Gps.builder()
-                                .address(null)
-                                .latitude(0.0)
-                                .latitude(0.0)
+                                .address("서울 마포구 마포대로 122")
+                                .latitude(126.952499) // 경도(x)+---
+                                .latitude(37.5453021) // 위도(y)
                                 .distance(0)
                                 .build()
                 )
