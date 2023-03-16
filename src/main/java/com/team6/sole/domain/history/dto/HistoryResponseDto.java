@@ -42,6 +42,7 @@ public class HistoryResponseDto {
     }
 
     public static HistoryResponseDto of(Member writer,
+                                        String mostRegion,
                                         Set<PlaceCategory> mostPlaceCategories,
                                         Set<TransCategory> mostTransCategories) {
         LocalDate startDate = LocalDate.from(writer.getCreatedAt());
@@ -57,7 +58,7 @@ public class HistoryResponseDto {
                         .mapToInt(i -> i.getPlaces().size())
                         .sum())
                 .totalCourses(writer.getCourses().size())
-                .mostRegion(null)
+                .mostRegion(mostRegion)
                 .mostTransCategories(mostTransCategories)
                 .mostPlaceCategories(mostPlaceCategories)
                 .build();

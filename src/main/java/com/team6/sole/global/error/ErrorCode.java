@@ -72,6 +72,7 @@ public enum ErrorCode {
 
     /* 홈 관련 오류 */
     COURSE_NOT_FOUND(NOT_FOUND, "C000", "해당 코스를 찾을 수 없습니다"),
+    PLACE_NOT_FOUND(NOT_FOUND, "C002", "해당 장소를 찾을 수 없습니다"),
 
     /* 공지사항 관련 오류 */
     NOTICE_NOT_FOUND(NOT_FOUND, "N000", "해당 공지사항을 찾을 수 없습니다"),

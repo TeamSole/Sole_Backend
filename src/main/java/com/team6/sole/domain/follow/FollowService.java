@@ -95,15 +95,16 @@ public class FollowService {
 
         // 인기 코스 set
         followInfoResponseDto.setPopularCourse(
-                courseRepository.existsByWriter(followInfoMember)
-                        ? courseRepository.findAllByWriter(
+                followInfoMember.getCourses() == null
+                        ? null
+                        : courseRepository.findAllByWriter(
                                 followInfoMember,
-                                Sort.by(Sort.Direction.DESC, "scrapCount")).stream()
+                                Sort.by(Sort.Order.desc("scrapCount"),
+                                        Sort.Order.desc("createdAt"))).stream()
                         .map(popular -> HomeResponseDto.of(
                                 popular,
                                 courseMemberRepository.existsByMemberAndCourse_CourseId(member, popular.getCourseId())))
-                        .collect(Collectors.toList()).get(0)
-                        : null);
+                        .collect(Collectors.toList()).get(0));
 
         // 최근 코스들 set
         followInfoResponseDto.setRecentCourses(courseCustomRepository.findAllByWriter(courseId, followInfoMember).stream()
