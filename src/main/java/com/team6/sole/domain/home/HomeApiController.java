@@ -67,6 +67,22 @@ public class HomeApiController {
         return ResponseEntity.ok(CommonApiResponse.of(homeService.showCourseDetail(courseId, authentication.getName())));
     }
 
+    @PutMapping("{courseId}")
+    @ApiOperation(value = "코스 수정")
+    public ResponseEntity<CommonApiResponse<CourseResponseDto>> modCourse(
+            @PathVariable Long courseId,
+            @RequestPart(required = false) MultipartFile thumbnailImg,
+            HttpServletRequest request,
+            @RequestPart CourseUpdateRequestDto courseUpdateRequestDto) {
+        Map<String, List<MultipartFile>> placeImagesMap = new HashMap<>();
+        if (request instanceof MultipartHttpServletRequest) {
+            MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
+            placeImagesMap = multiRequest.getMultiFileMap();
+        }
+        return ResponseEntity.ok(CommonApiResponse.of(homeService.modCourse(courseId, thumbnailImg, placeImagesMap, courseUpdateRequestDto)));
+    }
+
+
     @DeleteMapping("{courseId}")
     @ApiOperation(value = "코스 삭제")
     public ResponseEntity<Void> delCourse(

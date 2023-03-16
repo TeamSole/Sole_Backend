@@ -19,19 +19,32 @@ public class Place extends BaseTimeEntity {
 
     private String placeName;
 
+    private int duration;
+
     private String description;
 
     @Embedded
     private Gps gps;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.LAZY)
     private List<String> placeImgUrls = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Course course;
 
+    public void modPlace(String placeName, int duration, String description, Gps gps) {
+        this.placeName = placeName;
+        this.duration = duration;
+        this.description = description;
+        this.gps = gps;
+    }
+
+    public void modPlaceImgUrls(List<String> placeImgUrls) {
+        this.placeImgUrls = placeImgUrls;
+    }
+
     @Builder
-    public Place(Long placeId, String placeName, String description,
+    public Place(Long placeId, String placeName, int duration, String description,
                  Gps gps, List<String> placeImgUrls, Course course) {
         this.placeId = placeId;
         this.placeName = placeName;

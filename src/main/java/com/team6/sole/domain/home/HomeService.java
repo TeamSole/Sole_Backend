@@ -29,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -123,7 +124,9 @@ public class HomeService {
                 .title(courseRequestDto.getTitle())
                 .description(courseRequestDto.getDescription())
                 .startDate(formatter.parse(courseRequestDto.getDate()))
-                .duration(courseRequestDto.getDuration())
+                .duration(courseRequestDto.getPlaceRequestDtos().stream()
+                        .mapToInt(PlaceRequestDto::getDuration)
+                        .sum())
                 .distance(courseRequestDto.getDistance())
                 .placeCategories(courseRequestDto.getPlaceCategories())
                 .withCategories(courseRequestDto.getWithCategories())
@@ -137,6 +140,7 @@ public class HomeService {
         for (PlaceRequestDto placeRequestDto : courseRequestDto.getPlaceRequestDtos()) {
             Place place = Place.builder()
                     .placeName(placeRequestDto.getPlaceName())
+                    .duration(placeRequestDto.getDuration())
                     .description(placeRequestDto.getDescription())
                     .gps(
                             Gps.builder()
@@ -146,7 +150,7 @@ public class HomeService {
                                     .build())
                     .placeImgUrls(courseImagesMap == null
                             ? null
-                            : awsS3Service.uploadImage(courseImagesMap.get(placeRequestDto.getPlaceName()), "course"))
+                            : awsS3Service.uploadImage(courseImagesMap.get(placeRequestDto.getPlaceName()), "place"))
                     .course(course)
                     .build();
             placeRepository.save(place);
@@ -171,6 +175,61 @@ public class HomeService {
                 : FollowStatus.NOT_FOLLOW;
 
         return CourseDetailResponseDto.of(course, isWriter, followStatus);
+    }
+
+    // 코스 업데이트
+    @SneakyThrows
+    @Transactional
+    public CourseResponseDto modCourse(Long courseId,
+                                       MultipartFile thumbnailImg,
+                                       Map<String, List<MultipartFile>> placeImages,
+                                       CourseUpdateRequestDto courseUpdateRequestDto) {
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.COURSE_NOT_FOUND));
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+
+        // 장소
+        for (PlaceUpdateRequestDto placeUpdateRequestDto : courseUpdateRequestDto.getPlaceUpdateRequestDtos()) {
+            Place place = placeRepository.findById(placeUpdateRequestDto.getPlaceId())
+                    .orElseThrow(() -> new NotFoundException(ErrorCode.PLACE_NOT_FOUND));
+            place.modPlace(
+                    placeUpdateRequestDto.getPlaceName(),
+                    placeUpdateRequestDto.getDuration(),
+                    placeUpdateRequestDto.getDescription(),
+                    Gps.builder()
+                            .address(placeUpdateRequestDto.getAddress())
+                            .latitude(placeUpdateRequestDto.getLatitude())
+                            .longitude(placeUpdateRequestDto.getLongitude())
+                            .distance(0.0)
+                            .build());
+
+            place.modPlaceImgUrls(
+                    placeImages.get(placeUpdateRequestDto.getPlaceId().toString()) == null
+                            ? placeUpdateRequestDto.getPlaceImgUrls()
+                            : Stream.of(
+                                    placeUpdateRequestDto.getPlaceImgUrls(), awsS3Service.uploadImage(placeImages.get(placeUpdateRequestDto.getPlaceId()), "place"),
+                                    placeUpdateRequestDto.getPlaceImgUrls())
+                            .flatMap(Collection::stream)
+                            .collect(Collectors.toList()));
+        }
+
+        // 코스
+        course.modCourse(
+                courseUpdateRequestDto.getTitle(),
+                formatter.parse(courseUpdateRequestDto.getStartDate()),
+                course.getPlaces().stream()
+                        .mapToInt(Place::getDuration)
+                        .sum(),
+                courseUpdateRequestDto.getPlaceCategories(),
+                courseUpdateRequestDto.getWithCategories(),
+                courseUpdateRequestDto.getTransCategories(),
+                courseUpdateRequestDto.getDescription());
+        course.modThumbnailImg(
+                thumbnailImg == null
+                        ? course.getThumbnailUrl()
+                        : awsS3Service.uploadImage(thumbnailImg, "course"));
+
+        return CourseResponseDto.of(course);
     }
 
     // 코스 삭제

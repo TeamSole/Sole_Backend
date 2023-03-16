@@ -6,10 +6,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class PlaceRequestDto {
+public class PlaceUpdateRequestDto {
+    @ApiModelProperty(value = "고유번호", example = "1")
+    private Long placeId;
+
     @ApiModelProperty(value = "장소이름", example = "짜장면집")
     private String placeName;
 
@@ -27,4 +32,7 @@ public class PlaceRequestDto {
 
     @ApiModelProperty(value = "경도", example = "23.22")
     private double longitude;
+
+    @ApiModelProperty(value = "장소 이미지들", example = "23.22")
+    private List<String> placeImgUrls;
 }

@@ -1,6 +1,5 @@
 package com.team6.sole.infra.direction;
 
-import com.team6.sole.domain.home.dto.RecommendCourseResponseDto;
 import com.team6.sole.domain.home.entity.Course;
 import com.team6.sole.domain.home.entity.Gps;
 import com.team6.sole.domain.home.repository.CourseRepository;
@@ -16,7 +15,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DirectionService {
     private final CourseRepository courseRepository;
-
     private static final int MAX_SEARCH_COUNT = 7; // 최대 검색 갯수
     private static final double RADIUS_KM = 10.0; // 반경 10 km
 
@@ -29,7 +27,7 @@ public class DirectionService {
                         gps.getLongitude(),
                                 course.getPlaces().get(0).getGps().getLatitude(),
                                 course.getPlaces().get(0).getGps().getLongitude()) <= RADIUS_KM)
-                .sorted(Comparator.comparing(Course::getScrapCount))
+                .sorted(Comparator.comparing(Course::getScrapCount).reversed())
                 .limit(MAX_SEARCH_COUNT)
                 .collect(Collectors.toList());
     }

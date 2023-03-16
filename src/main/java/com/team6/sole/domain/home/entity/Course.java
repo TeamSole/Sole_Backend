@@ -72,6 +72,24 @@ public class Course extends BaseTimeEntity {
         this.scrapCount--;
     }
 
+    public void modCourse(String title, Date startDate, int duration,
+                          Set<PlaceCategory> placeCategories,
+                          Set<WithCategory> withCategories,
+                          Set<TransCategory> transCategories,
+                          String description) {
+        this.title = title;
+        this.startDate = startDate;
+        this.duration = duration;
+        this.placeCategories = placeCategories;
+        this.withCategories = withCategories;
+        this.transCategories = transCategories;
+        this.description = description;
+    }
+
+    public void modThumbnailImg(String thumbnailUrl) {
+        this.thumbnailUrl = thumbnailUrl;
+    }
+
     @Builder
     public Course(Long courseId, String thumbnailUrl, int scrapCount,
                   String title, String description, Date startDate,
