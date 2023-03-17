@@ -50,12 +50,8 @@ public class HomeApiController {
             @ApiIgnore Authentication authentication,
             @RequestPart(required = false) MultipartFile thumbnailImg,
             @RequestPart CourseRequestDto courseRequestDto,
-            HttpServletRequest request) {
-        Map<String, List<MultipartFile>> courseImagesMap = new HashMap<>();
-        if (request instanceof MultipartHttpServletRequest) {
-            MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
-            courseImagesMap = multiRequest.getMultiFileMap();
-        }
+            MultipartHttpServletRequest multipartHttpServletRequest) {
+        Map<String, List<MultipartFile>> courseImagesMap = multipartHttpServletRequest.getMultiFileMap();
         return ResponseEntity.ok(CommonApiResponse.of(homeService.makeCourse(authentication.getName(), courseRequestDto, thumbnailImg, courseImagesMap)));
     }
 
@@ -72,13 +68,9 @@ public class HomeApiController {
     public ResponseEntity<CommonApiResponse<CourseResponseDto>> modCourse(
             @PathVariable Long courseId,
             @RequestPart(required = false) MultipartFile thumbnailImg,
-            HttpServletRequest request,
+            MultipartHttpServletRequest multipartHttpServletRequest,
             @RequestPart CourseUpdateRequestDto courseUpdateRequestDto) {
-        Map<String, List<MultipartFile>> placeImagesMap = new HashMap<>();
-        if (request instanceof MultipartHttpServletRequest) {
-            MultipartHttpServletRequest multiRequest = (MultipartHttpServletRequest) request;
-            placeImagesMap = multiRequest.getMultiFileMap();
-        }
+        Map<String, List<MultipartFile>> placeImagesMap = multipartHttpServletRequest.getMultiFileMap();
         return ResponseEntity.ok(CommonApiResponse.of(homeService.modCourse(courseId, thumbnailImg, placeImagesMap, courseUpdateRequestDto)));
     }
 
