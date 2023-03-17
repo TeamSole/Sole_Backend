@@ -49,10 +49,10 @@ public class HomeApiController {
     public ResponseEntity<CommonApiResponse<CourseResponseDto>> makeCourse(
             @ApiIgnore Authentication authentication,
             @RequestPart(required = false) MultipartFile thumbnailImg,
-            @RequestPart CourseRequestDto courseRequestDto,
-            MultipartHttpServletRequest multipartHttpServletRequest) {
-        Map<String, List<MultipartFile>> courseImagesMap = multipartHttpServletRequest.getMultiFileMap();
-        return ResponseEntity.ok(CommonApiResponse.of(homeService.makeCourse(authentication.getName(), courseRequestDto, thumbnailImg, courseImagesMap)));
+            @RequestPart CourseRequestDto courseRequestDto/*,
+            MultipartHttpServletRequest multipartHttpServletRequest*/) {
+        /*Map<String, List<MultipartFile>> courseImagesMap = multipartHttpServletRequest.getMultiFileMap();*/
+        return ResponseEntity.ok(CommonApiResponse.of(homeService.makeCourse(authentication.getName(), courseRequestDto, thumbnailImg/*, courseImagesMap*/)));
     }
 
     @GetMapping("{courseId}")
