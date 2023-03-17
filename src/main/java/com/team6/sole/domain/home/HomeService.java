@@ -110,7 +110,7 @@ public class HomeService {
     @SneakyThrows
     @Transactional
     public CourseResponseDto makeCourse(String socialId, CourseRequestDto courseRequestDto,
-                                        MultipartFile thumbnailImg, Map<String, List<MultipartFile>> courseImagesMap) {
+                                        MultipartFile thumbnailImg/*, Map<String, List<MultipartFile>> courseImagesMap*/) {
         Member writer = memberRepository.findBySocialId(socialId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
@@ -148,9 +148,9 @@ public class HomeService {
                                     .latitude(placeRequestDto.getLatitude())
                                     .longitude(placeRequestDto.getLongitude())
                                     .build())
-                    .placeImgUrls(courseImagesMap == null
+                    /*.placeImgUrls(courseImagesMap == null
                             ? null
-                            : awsS3Service.uploadImage(courseImagesMap.get(placeRequestDto.getPlaceName()), "place"))
+                            : awsS3Service.uploadImage(courseImagesMap.get(placeRequestDto.getPlaceName()), "place"))*/
                     .course(course)
                     .build();
             placeRepository.save(place);
