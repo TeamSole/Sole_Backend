@@ -10,6 +10,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -21,6 +22,7 @@ public class RecommendCourseScheduler {
     private final DirectionService directionService;
 
     @Async("home")
+    @Transactional
     @CacheEvict(value = "recommends", allEntries = true) // 캐싱 초기화
     @Scheduled(cron = "0 0 0 * * ?") //daily at 00:00
     public void recommendCourses() {
