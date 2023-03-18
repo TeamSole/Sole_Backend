@@ -51,6 +51,16 @@ public class ScrapService {
                 .map(ScrapFolderResponseDto::of)
                 .collect(Collectors.toList());
     }
+    
+    // 스크랩 폴더 이름 수정
+    @Transactional
+    public String modScrapFolderName(Long scrapFolderId, String scrapFolderName) {
+        ScrapFolder scrapFolder = scrapFolderRespository.findById(scrapFolderId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.SCRAP_FOLDER_NOT_FOUND));
+        scrapFolder.modScrapFolderName(scrapFolderName);
+
+        return scrapFolder.getScrapFolderName() + "으로 수정되었습니다.";
+    }
 
     // 기본 폴더 속 코스 보기
     @Transactional(readOnly = true)
@@ -93,19 +103,23 @@ public class ScrapService {
 
     // 기본 폴더에서 코스 삭제(스크랩 수 -1)
     @Transactional
-    public void delScrap(String socialId, Long courseId) {
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.COURSE_NOT_FOUND));
+    public void delScrap(String socialId, List<Long> courseIds) {
+        for (Long courseId : courseIds) {
+            Course course = courseRepository.findById(courseId)
+                    .orElseThrow(() -> new NotFoundException(ErrorCode.COURSE_NOT_FOUND));
 
-        courseMemberRepository.deleteByCourse_CourseIdAndMember_SocialId(courseId, socialId);
-        course.removeScrapCount();
+            courseMemberRepository.deleteByCourse_CourseIdAndMember_SocialId(courseId, socialId);
+            course.removeScrapCount();
+        }
     }
 
     // 새 폴더에서 코스 삭제(스크랩 수 변동 없음)
     @Transactional
-    public void delNewScrap(String socialId, Long scrapFolderId, Long courseId) {
-        CourseMember courseMember = courseMemberRepository.findByCourse_CourseIdAndMember_SocialId(courseId, socialId);
+    public void delNewScrap(String socialId, Long scrapFolderId, List<Long> courseIds) {
+        for (Long courseId : courseIds) {
+            CourseMember courseMember = courseMemberRepository.findByCourse_CourseIdAndMember_SocialId(courseId, socialId);
 
-        courseMemberScrapFolderRepository.deleteByCourseMemberAndScrapFolder_ScrapFolderId(courseMember, scrapFolderId);
+            courseMemberScrapFolderRepository.deleteByCourseMemberAndScrapFolder_ScrapFolderId(courseMember, scrapFolderId);
+        }
     }
 }

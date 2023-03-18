@@ -38,6 +38,14 @@ public class ScrapApiController {
         return ResponseEntity.ok(CommonApiResponse.of(scrapService.showScrapFolders(authentication.getName())));
     }
 
+    @PatchMapping("{scrapFolderId}")
+    @ApiOperation(value = "스크랩 폴더 이름 수정")
+    public ResponseEntity<CommonApiResponse<String>> modScrapFolderName(
+            @PathVariable Long scrapFolderId,
+            @RequestBody ScrapFolderRequestDto scrapFolderRequestDto) {
+        return ResponseEntity.ok(CommonApiResponse.of(scrapService.modScrapFolderName(scrapFolderId, scrapFolderRequestDto.getScrapFolderName())));
+    }
+
     @GetMapping("default")
     @ApiOperation(value = "기본 스크랩 폴더 조회")
     public ResponseEntity<CommonApiResponse<List<HomeResponseDto>>> showScrapDetails(
@@ -60,22 +68,22 @@ public class ScrapApiController {
         return ResponseEntity.ok(CommonApiResponse.of(scrapService.showNewScrapDetails(scrapFolderId)));
     }
 
-    @DeleteMapping("default/{courseId}")
+    @DeleteMapping("default/{courseIds}")
     @ApiOperation(value = "기본 스크랩 폴더에서 코스 삭제(스크랩 취소)")
     public ResponseEntity<Void> delScrap(
             @ApiIgnore Authentication authentication,
-            @PathVariable Long courseId) {
-        scrapService.delScrap(authentication.getName(), courseId);
+            @PathVariable List<Long> courseIds) {
+        scrapService.delScrap(authentication.getName(), courseIds);
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("{scrapFolderId}/{courseId}")
+    @DeleteMapping("{scrapFolderId}/{courseIds}")
     @ApiOperation(value = "새 스크랩 폴더에서 코스 삭제")
     public ResponseEntity<Void> delNewScrap(
             @ApiIgnore Authentication authentication,
             @PathVariable Long scrapFolderId,
-            @PathVariable Long courseId) {
-        scrapService.delNewScrap(authentication.getName(), scrapFolderId, courseId);
+            @PathVariable List<Long> courseIds) {
+        scrapService.delNewScrap(authentication.getName(), scrapFolderId, courseIds);
         return ResponseEntity.ok().build();
     }
 }
