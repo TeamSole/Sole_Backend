@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface ScrapFolderRespository extends JpaRepository<ScrapFolder, Long> {
     List<ScrapFolder> findByMember_SocialId(String socialId);
+
+    void deleteByScrapFolderId(Long scrapFolderId);
 }

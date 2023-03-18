@@ -46,6 +46,14 @@ public class ScrapApiController {
         return ResponseEntity.ok(CommonApiResponse.of(scrapService.modScrapFolderName(scrapFolderId, scrapFolderRequestDto.getScrapFolderName())));
     }
 
+    @DeleteMapping("{scrapFolderId}")
+    @ApiOperation(value = "스크랩 폴더 삭제")
+    public ResponseEntity<Void> delScrapFolder(
+            @PathVariable Long scrapFolderId) {
+        scrapService.delScrapFolder(scrapFolderId);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("default")
     @ApiOperation(value = "기본 스크랩 폴더 조회")
     public ResponseEntity<CommonApiResponse<List<HomeResponseDto>>> showScrapDetails(
