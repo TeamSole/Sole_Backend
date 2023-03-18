@@ -62,6 +62,12 @@ public class ScrapService {
         return scrapFolder.getScrapFolderName() + "으로 수정되었습니다.";
     }
 
+    // 스크랩 폴더 삭제
+    @Transactional
+    public void delScrapFolder(Long scrapFolderId) {
+        scrapFolderRespository.deleteByScrapFolderId(scrapFolderId);
+    }
+
     // 기본 폴더 속 코스 보기
     @Transactional(readOnly = true)
     public List<HomeResponseDto> showScrapDetails(String socialId) {
