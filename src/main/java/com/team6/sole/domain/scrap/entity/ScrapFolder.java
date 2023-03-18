@@ -25,6 +25,10 @@ public class ScrapFolder {
     @OneToMany(mappedBy = "scrapFolder", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<CourseMemberScrapFolder> courseMemberScrapFolders = new ArrayList<>();
 
+    public void modScrapFolderName(String scrapFolderName) {
+        this.scrapFolderName = scrapFolderName;
+    }
+
     @Builder
     public ScrapFolder(Long scrapFolderId, String scrapFolderName,
                        Member member, List<CourseMemberScrapFolder> courseMemberScrapFolders) {
