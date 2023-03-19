@@ -221,10 +221,10 @@ public class MemberService {
         Member member = memberRepository.findBySocialId(socialId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
-        //이미 로그아웃 된 상태
+        /*//이미 로그아웃 된 상태
         if (StringUtils.isBlank(member.getFcmToken())) {
             throw new BadRequestException(ErrorCode.USER_ALREADY_LOGGED_OUT);
-        }
+        }*/
 
         //redis 에서 registerToken 삭제
         tokenProvider.deleteRegisterToken(member.getSocialId());
