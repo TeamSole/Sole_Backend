@@ -33,6 +33,9 @@ public class MemberRequestDto {
     @ApiModelProperty(value = "마케팅 정보 수신 및 동의", example = "false")
     private boolean marketingAccepted;
 
+    @ApiModelProperty(value = "위치정보 동의", example = "true")
+    private boolean locationAccepted;
+
     @ApiModelProperty(value = "장소 카테고리")
     private Set<PlaceCategory> placeCategories;
 
