@@ -74,7 +74,7 @@ public class ScrapService {
         List<CourseMember> courses = courseMemberRepository.findByMember_SocialId(socialId);
 
         return courses.stream()
-                .map(course -> HomeResponseDto.of(course.getCourse(), true))
+                .map(course -> HomeResponseDto.of(course.getCourse(), true, false))
                 .collect(Collectors.toList());
     }
 
@@ -103,7 +103,7 @@ public class ScrapService {
                 .findAllByScrapFolder_ScrapFolderId(scrapFolderId);
 
         return courseMemberScrapFolders.stream()
-                .map(newScrap -> HomeResponseDto.of(newScrap.getCourseMember().getCourse(), true))
+                .map(newScrap -> HomeResponseDto.of(newScrap.getCourseMember().getCourse(), true, false))
                 .collect(Collectors.toList());
     }
 

@@ -64,12 +64,25 @@ public class HistoryService {
                     historySearchRequestDto.getTransCategories());
 
             return filterCourses.stream()
-                    .map(course -> HomeResponseDto.of(course, true))
+                    .map(course -> HomeResponseDto.of(
+                            course,
+                            true,
+                            courseCustomRepository.findAllByCatgegoryAndWriter(
+                                    filterCourses.get(filterCourses.size() - 1).getCourseId(),
+                                    member,
+                                    historySearchRequestDto.getPlaceCategories(),
+                                    historySearchRequestDto.getWithCategories(),
+                                    historySearchRequestDto.getTransCategories()).isEmpty()))
                     .collect(Collectors.toList());
         }
 
         return courses.stream()
-                .map(course -> HomeResponseDto.of(course, true))
+                .map(course -> HomeResponseDto.of(
+                        course,
+                        true,
+                        courseCustomRepository.findAllByWriter(
+                                courses.get(courses.size() - 1).getCourseId(),
+                                member).isEmpty()))
                 .collect(Collectors.toList());
     }
 

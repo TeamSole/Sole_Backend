@@ -36,7 +36,7 @@ public class HomeApiController {
     @ApiOperation(value = "홈 보기")
     public ResponseEntity<CommonApiResponse<List<HomeResponseDto>>> showHomes(
             @ApiIgnore Authentication authentication,
-            @RequestParam Long courseId,
+            @RequestParam(required = false) Long courseId,
             @RequestParam(required = false) String searchWord) {
         if (searchWord != null) {
             return ResponseEntity.ok(CommonApiResponse.of(homeService.searchHomes(authentication.getName(), courseId, searchWord)));

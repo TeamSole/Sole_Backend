@@ -72,19 +72,30 @@ public class HomeService {
         Member member = memberRepository.findBySocialId(socialId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
+        if (member.getFavoriteCategory().getTransCategories() == null
+                && member.getFavoriteCategory().getPlaceCategories() == null
+                && member.getFavoriteCategory().getWithCategories() == null) {
+            return Collections.emptyList();
+        }
+
         // 선호하는 카테고리 findAll
         List<Course> courses = courseCustomRepository
-                .findAllByCatgegory(
+                .findAllByCategory(
                         courseId,
                         member.getFavoriteCategory().getPlaceCategories(),
                         member.getFavoriteCategory().getWithCategories(),
                         member.getFavoriteCategory().getTransCategories());
+        boolean finalPage = courseCustomRepository.findAllByCategory(courses.get(courses.size() - 1).getCourseId(),
+                member.getFavoriteCategory().getPlaceCategories(),
+                member.getFavoriteCategory().getWithCategories(),
+                member.getFavoriteCategory().getTransCategories()).isEmpty();
 
         // 좋아요 여부 추가 및 dto 변환
         return courses.stream()
                 .map(course -> HomeResponseDto.of(
                         course,
-                        courseMemberRepository.existsByMemberAndCourse_CourseId(member, course.getCourseId())))
+                        courseMemberRepository.existsByMemberAndCourse_CourseId(member, course.getCourseId()),
+                        finalPage))
                 .collect(Collectors.toList());
     }
 
@@ -100,9 +111,14 @@ public class HomeService {
         return searchCourses.stream()
                 .map(course -> HomeResponseDto.of(
                         course,
+                        // 스크랩 여부
                         courseMemberRepository.existsByMemberAndCourse_CourseId(
                                 member,
-                                course.getCourseId())))
+                                course.getCourseId()),
+                        // 마지막 페이지여부
+                        courseCustomRepository.findAllByTitleContaining(
+                                searchCourses.get(searchCourses.size() - 1).getCourseId(),
+                                searchWord).isEmpty()))
                 .collect(Collectors.toList());
     }
     

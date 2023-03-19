@@ -26,10 +26,12 @@ public class HomeResponseDto {
 
     private Set<?> categories = new HashSet<>();
 
+    private boolean finalPage;
+
     @Builder
     public HomeResponseDto(Long courseId, String thumbnailImg, String title,
                            boolean isLike, String address, int duration, int distance,
-                           Set<?> categories) {
+                           Set<?> categories, boolean finalPage) {
         this.courseId = courseId;
         this.thumbnailImg = thumbnailImg;
         this.title = title;
@@ -38,9 +40,10 @@ public class HomeResponseDto {
         this.duration = duration;
         this.distance = distance;
         this.categories = categories;
+        this.finalPage = finalPage;
     }
 
-    public static HomeResponseDto of(Course course, boolean isLike) {
+    public static HomeResponseDto of(Course course, boolean isLike, boolean finalPage) {
         Set<Object> mergedSet = new HashSet<>();
         mergedSet.addAll(course.getPlaceCategories());
         mergedSet.addAll(course.getWithCategories());
@@ -55,6 +58,7 @@ public class HomeResponseDto {
                 .duration(course.getDuration())
                 .distance(course.getDistance())
                 .categories(mergedSet)
+                .finalPage(finalPage)
                 .build();
     }
 }
