@@ -105,6 +105,7 @@ public class MemberService {
                 .serviceAccepted(memberRequestDto.isServiceAccepted())
                 .infoAccepted(memberRequestDto.isInfoAccepted())
                 .marketingAccepted(memberRequestDto.isMarketingAccepted())
+                .locationAccepted(memberRequestDto.isLocationAccepted())
                 .build();
         acceptRepository.save(accept);
 
@@ -148,7 +149,7 @@ public class MemberService {
                 .currentGps(
                         Gps.builder()
                                 .address("서울 마포구 마포대로 122")
-                                .latitude(126.952499) // 경도(x)+---
+                                .latitude(126.952499) // 경도(x)
                                 .latitude(37.5453021) // 위도(y)
                                 .distance(0)
                                 .build()

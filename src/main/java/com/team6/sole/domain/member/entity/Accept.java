@@ -21,16 +21,19 @@ public class Accept {
 
     private boolean marketingAccepted;
 
+    private boolean locationAccepted;
+
     @OneToOne(mappedBy = "accept", cascade = CascadeType.ALL)
     private Member member;
 
     @Builder
     public Accept(Long acceptId, boolean serviceAccepted, boolean infoAccepted,
-                  boolean marketingAccepted, Member member) {
+                  boolean marketingAccepted, boolean locationAccepted, Member member) {
         this.acceptId = acceptId;
         this.serviceAccepted = serviceAccepted;
         this.infoAccepted = infoAccepted;
         this.marketingAccepted = marketingAccepted;
+        this.locationAccepted = locationAccepted;
         this.member = member;
     }
 }
