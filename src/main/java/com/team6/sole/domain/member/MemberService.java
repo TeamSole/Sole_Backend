@@ -12,6 +12,7 @@ import com.team6.sole.domain.member.model.Social;
 import com.team6.sole.domain.scrap.ScrapFolderRespository;
 import com.team6.sole.domain.scrap.entity.ScrapFolder;
 import com.team6.sole.global.config.CommonApiResponse;
+import com.team6.sole.global.config.redis.RedisService;
 import com.team6.sole.global.config.s3.AwsS3ServiceImpl;
 import com.team6.sole.global.config.security.dto.TokenResponseDto;
 import com.team6.sole.global.config.security.jwt.TokenProvider;
@@ -48,6 +49,7 @@ public class MemberService {
     private final TokenProvider tokenProvider;
     private final WebClient webClient;
     private final AppleUtils appleUtils;
+    private final RedisService redisService;
 
     // 회원체크 및 로그인(소셜)
     @SneakyThrows // 명시적 예외처리(lombok)
@@ -149,7 +151,7 @@ public class MemberService {
                 .currentGps(
                         Gps.builder()
                                 .address("서울 마포구 마포대로 122")
-                                .latitude(126.952499) // 경도(x)
+                                .longitude(126.952499) // 경도(x)
                                 .latitude(37.5453021) // 위도(y)
                                 .distance(0)
                                 .build()
@@ -181,8 +183,11 @@ public class MemberService {
             throw new BadRequestException(ErrorCode.INVALID_ACCESS_TOKEN);
         }
 
+
         try {
             socialId = tokenProvider.parseClaims(accessToken).getSubject();
+            log.info(refreshToken);
+            log.info(redisService.getValues(socialId));
         } catch (Exception e) {
             throw new BadRequestException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
