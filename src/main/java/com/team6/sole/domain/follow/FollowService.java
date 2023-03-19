@@ -103,16 +103,20 @@ public class FollowService {
                                         Sort.Order.desc("createdAt"))).stream()
                         .map(popular -> HomeResponseDto.of(
                                 popular,
-                                courseMemberRepository.existsByMemberAndCourse_CourseId(member, popular.getCourseId())))
+                                courseMemberRepository.existsByMemberAndCourse_CourseId(member, popular.getCourseId()),
+                                true))
                         .collect(Collectors.toList()).get(0));
 
         // 최근 코스들 set
-        followInfoResponseDto.setRecentCourses(courseCustomRepository.findAllByWriter(courseId, followInfoMember).stream()
+        List<Course> courses = courseCustomRepository.findAllByWriter(courseId, followInfoMember);
+        followInfoResponseDto.setRecentCourses(courses.stream()
                 .map(recent -> HomeResponseDto.of(
                         recent,
-                        courseMemberRepository.existsByMemberAndCourse_CourseId(member, recent.getCourseId())))
+                        courseMemberRepository.existsByMemberAndCourse_CourseId(member, recent.getCourseId()),
+                        courseCustomRepository.findAllByWriter(
+                                courses.get(courses.size() - 1).getCourseId(),
+                                followInfoMember).isEmpty()))
                 .collect(Collectors.toList()));
-
         return followInfoResponseDto;
     }
 
