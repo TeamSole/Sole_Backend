@@ -42,7 +42,7 @@ public class MypageService {
 
         member.modMypage(
                 multipartFile == null
-                        ? null
+                        ? member.getProfileImgUrl()
                         : awsS3Service.uploadImage(multipartFile, "member"),
                 mypageRequestDto.getNickname(),
                 mypageRequestDto.getDescription()

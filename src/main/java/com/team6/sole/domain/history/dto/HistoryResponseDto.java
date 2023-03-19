@@ -16,6 +16,8 @@ import java.util.Set;
 public class HistoryResponseDto {
     private String nickname;
 
+    private String profileImg;
+
     private int totalDate;
 
     private int totalPlaces;
@@ -29,10 +31,11 @@ public class HistoryResponseDto {
     private Set<PlaceCategory> mostPlaceCategories;
 
     @Builder
-    public HistoryResponseDto(String nickname, int totalDate, int totalPlaces, int totalCourses,
+    public HistoryResponseDto(String nickname, String profileImg, int totalDate, int totalPlaces, int totalCourses,
                               String mostRegion,
                               Set<TransCategory> mostTransCategories, Set<PlaceCategory> mostPlaceCategories) {
         this.nickname = nickname;
+        this.profileImg = profileImg;
         this.totalDate = totalDate;
         this.totalPlaces = totalPlaces;
         this.totalCourses = totalCourses;
@@ -53,6 +56,7 @@ public class HistoryResponseDto {
 
         return HistoryResponseDto.builder()
                 .nickname(writer.getNickname())
+                .profileImg(writer.getProfileImgUrl())
                 .totalDate(betweenDays)
                 .totalPlaces(writer.getCourses().stream()
                         .mapToInt(i -> i.getPlaces().size())
