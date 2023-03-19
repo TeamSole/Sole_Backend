@@ -2,6 +2,7 @@ package com.team6.sole.domain.member;
 
 import com.team6.sole.domain.member.dto.*;
 import com.team6.sole.global.config.CommonApiResponse;
+import com.team6.sole.global.config.redis.RedisService;
 import com.team6.sole.global.config.security.dto.TokenResponseDto;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -18,6 +19,7 @@ import springfox.documentation.annotations.ApiIgnore;
 @RequestMapping("api/members")
 public class MemberApiController {
     private final MemberService memberService;
+    private final RedisService redisService;
 
     @PostMapping("{provider}")
     @ApiOperation(value = "회원체크 및 로그인(소셜)")
@@ -74,5 +76,10 @@ public class MemberApiController {
     @PostMapping("testLogin")
     public ResponseEntity<CommonApiResponse<MemberResponseDto>> checkMember() {
         return memberService.checkMember();
+    }
+
+    @GetMapping("getRefreshToken")
+    public ResponseEntity<CommonApiResponse<String>> getRefreshToken() {
+        return ResponseEntity.ok(CommonApiResponse.of(redisService.getValues("2670138446")));
     }
 }
