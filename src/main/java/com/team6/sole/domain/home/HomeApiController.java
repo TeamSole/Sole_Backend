@@ -48,11 +48,10 @@ public class HomeApiController {
     @ApiOperation(value = "코스 등록")
     public ResponseEntity<CommonApiResponse<CourseResponseDto>> makeCourse(
             @ApiIgnore Authentication authentication,
-            @RequestPart(required = false) MultipartFile thumbnailImg,
-            @RequestPart CourseRequestDto courseRequestDto/*,
-            MultipartHttpServletRequest multipartHttpServletRequest*/) {
-        /*Map<String, List<MultipartFile>> courseImagesMap = multipartHttpServletRequest.getMultiFileMap();*/
-        return ResponseEntity.ok(CommonApiResponse.of(homeService.makeCourse(authentication.getName(), courseRequestDto, thumbnailImg/*, courseImagesMap*/)));
+            @RequestPart CourseRequestDto courseRequestDto,
+            MultipartHttpServletRequest multipartHttpServletRequest) {
+        Map<String, List<MultipartFile>> courseImagesMap = multipartHttpServletRequest.getMultiFileMap();
+        return ResponseEntity.ok(CommonApiResponse.of(homeService.makeCourse(authentication.getName(), courseRequestDto, courseImagesMap)));
     }
 
     @GetMapping("{courseId}")
@@ -67,13 +66,11 @@ public class HomeApiController {
     @ApiOperation(value = "코스 수정")
     public ResponseEntity<CommonApiResponse<CourseResponseDto>> modCourse(
             @PathVariable Long courseId,
-            @RequestPart(required = false) MultipartFile thumbnailImg,
             MultipartHttpServletRequest multipartHttpServletRequest,
             @RequestPart CourseUpdateRequestDto courseUpdateRequestDto) {
         Map<String, List<MultipartFile>> placeImagesMap = multipartHttpServletRequest.getMultiFileMap();
-        return ResponseEntity.ok(CommonApiResponse.of(homeService.modCourse(courseId, thumbnailImg, placeImagesMap, courseUpdateRequestDto)));
+        return ResponseEntity.ok(CommonApiResponse.of(homeService.modCourse(courseId, placeImagesMap, courseUpdateRequestDto)));
     }
-
 
     @DeleteMapping("{courseId}")
     @ApiOperation(value = "코스 삭제")
