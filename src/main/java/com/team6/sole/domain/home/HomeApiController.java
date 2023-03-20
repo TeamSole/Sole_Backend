@@ -74,10 +74,10 @@ public class HomeApiController {
 
     @DeleteMapping("{courseId}")
     @ApiOperation(value = "코스 삭제")
-    public ResponseEntity<Void> delCourse(
+    public ResponseEntity<CommonApiResponse<Boolean>> delCourse(
             @PathVariable Long courseId) {
         homeService.delCourse(courseId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(CommonApiResponse.of(true));
     }
 
     @GetMapping("recommend")
