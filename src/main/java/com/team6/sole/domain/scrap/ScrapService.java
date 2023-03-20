@@ -117,6 +117,7 @@ public class ScrapService {
         for (Long courseId : courseIds) {
             Course course = courseRepository.findById(courseId)
                     .orElseThrow(() -> new NotFoundException(ErrorCode.COURSE_NOT_FOUND));
+
             courseMemberRepository.deleteByCourse_CourseIdAndMember_SocialId(courseId, socialId);
             course.removeScrapCount();
         }

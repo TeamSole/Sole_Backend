@@ -48,10 +48,10 @@ public class ScrapApiController {
 
     @DeleteMapping("{scrapFolderId}")
     @ApiOperation(value = "스크랩 폴더 삭제")
-    public ResponseEntity<Void> delScrapFolder(
+    public ResponseEntity<CommonApiResponse<Boolean>> delScrapFolder(
             @PathVariable Long scrapFolderId) {
         scrapService.delScrapFolder(scrapFolderId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(CommonApiResponse.of(true));
     }
 
     @GetMapping("default")
