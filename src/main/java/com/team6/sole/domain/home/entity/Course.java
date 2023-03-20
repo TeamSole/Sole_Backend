@@ -60,6 +60,9 @@ public class Course extends BaseTimeEntity {
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<CourseMember> courseMembers = new ArrayList<>();
 
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Declaration> declarations = new ArrayList<>();
+
     public void putPlace(Place place) {
         this.getPlaces().add(place);
     }
@@ -95,7 +98,8 @@ public class Course extends BaseTimeEntity {
                   String title, String description, Date startDate,
                   int duration, int distance,
                   Set<PlaceCategory> placeCategories, Set<WithCategory> withCategories, Set<TransCategory> transCategories,
-                  Member writer, Member member, List<Place> places, List<CourseMember> courseMembers) {
+                  Member writer, Member member, List<Place> places, List<CourseMember> courseMembers,
+                  List<Declaration> declarations) {
         this.courseId = courseId;
         this.thumbnailUrl = thumbnailUrl;
         this.scrapCount = scrapCount;
@@ -111,5 +115,6 @@ public class Course extends BaseTimeEntity {
         this.member = member;
         this.places = places;
         this.courseMembers = courseMembers;
+        this.declarations = declarations;
     }
 }

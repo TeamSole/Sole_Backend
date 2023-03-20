@@ -3,15 +3,9 @@ package com.team6.sole.domain.home;
 import com.team6.sole.domain.follow.FollowRepository;
 import com.team6.sole.domain.follow.model.FollowStatus;
 import com.team6.sole.domain.home.dto.*;
-import com.team6.sole.domain.home.entity.Category;
-import com.team6.sole.domain.home.entity.Course;
-import com.team6.sole.domain.home.entity.Gps;
-import com.team6.sole.domain.home.entity.Place;
+import com.team6.sole.domain.home.entity.*;
 import com.team6.sole.domain.home.entity.relation.CourseMember;
-import com.team6.sole.domain.home.repository.CourseCustomRepository;
-import com.team6.sole.domain.home.repository.CourseMemberRepository;
-import com.team6.sole.domain.home.repository.CourseRepository;
-import com.team6.sole.domain.home.repository.PlaceRepository;
+import com.team6.sole.domain.home.repository.*;
 import com.team6.sole.domain.member.MemberRepository;
 import com.team6.sole.domain.member.entity.Member;
 import com.team6.sole.global.config.s3.AwsS3ServiceImpl;
@@ -41,6 +35,7 @@ public class HomeService {
     private final CourseCustomRepository courseCustomRepository;
     private final PlaceRepository placeRepository;
     private final MemberRepository memberRepository;
+    private final DeclarationRepository declarationRepository;
     private final AwsS3ServiceImpl awsS3Service;
     
     // 현재 위치 설정
@@ -280,6 +275,23 @@ public class HomeService {
             course.addScrapCount();
             courseRepository.saveAndFlush(course);
         }
+    }
+    
+    // 코스 신고하기
+    @Transactional
+    public String declareCourse(String socialId, Long courseId) {
+        Member member = memberRepository.findBySocialId(socialId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.COURSE_NOT_FOUND));
+
+        Declaration declaration = Declaration.builder()
+                .course(course)
+                .member(member)
+                .build();
+        declarationRepository.save(declaration);
+
+        return "신고가 접수되었습니다.";
     }
 
     // 선호 카테고리 보기

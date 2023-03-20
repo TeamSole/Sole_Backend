@@ -96,6 +96,14 @@ public class HomeApiController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("{courseId}/declare")
+    @ApiOperation(value = "코스 신고")
+    public ResponseEntity<CommonApiResponse<String>> declareCourse(
+            @ApiIgnore Authentication authentication,
+            @PathVariable Long courseId) {
+        return ResponseEntity.ok(CommonApiResponse.of(homeService.declareCourse(authentication.getName(), courseId)));
+    }
+
     @GetMapping("favCategory")
     @ApiOperation(value = "선호 카테고리 보기")
     public ResponseEntity<CommonApiResponse<FavCategoryResponseDto>> showFavCategory(
