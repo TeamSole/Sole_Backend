@@ -126,16 +126,16 @@ public class HomeService {
     @SneakyThrows
     @Transactional
     public CourseResponseDto makeCourse(String socialId, CourseRequestDto courseRequestDto,
-                                        MultipartFile thumbnailImg/*, Map<String, List<MultipartFile>> courseImagesMap*/) {
+                                        Map<String, List<MultipartFile>> courseImagesMap) {
         Member writer = memberRepository.findBySocialId(socialId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
         // 코스 저장
         Course course = Course.builder()
-                .thumbnailUrl(thumbnailImg == null
+                .thumbnailUrl(courseImagesMap.get("thumbnailImg") == null
                         ? null
-                        : awsS3Service.uploadImage(thumbnailImg, "course"))
+                        : awsS3Service.uploadImage(courseImagesMap.get("thumbnailImg").get(0), "course"))
                 .scrapCount(0)
                 .title(courseRequestDto.getTitle())
                 .description(courseRequestDto.getDescription())
@@ -164,9 +164,9 @@ public class HomeService {
                                     .latitude(placeRequestDto.getLatitude())
                                     .longitude(placeRequestDto.getLongitude())
                                     .build())
-                    /*.placeImgUrls(courseImagesMap == null
+                    .placeImgUrls(courseImagesMap.get(placeRequestDto.getPlaceName()) == null
                             ? null
-                            : awsS3Service.uploadImage(courseImagesMap.get(placeRequestDto.getPlaceName()), "place"))*/
+                            : awsS3Service.uploadImage(courseImagesMap.get(placeRequestDto.getPlaceName()), "place"))
                     .course(course)
                     .build();
             placeRepository.save(place);
@@ -197,7 +197,6 @@ public class HomeService {
     @SneakyThrows
     @Transactional
     public CourseResponseDto modCourse(Long courseId,
-                                       MultipartFile thumbnailImg,
                                        Map<String, List<MultipartFile>> placeImages,
                                        CourseUpdateRequestDto courseUpdateRequestDto) {
         Course course = courseRepository.findById(courseId)
@@ -241,9 +240,9 @@ public class HomeService {
                 courseUpdateRequestDto.getTransCategories(),
                 courseUpdateRequestDto.getDescription());
         course.modThumbnailImg(
-                thumbnailImg == null
+                placeImages.get("thumbnailImg") == null
                         ? course.getThumbnailUrl()
-                        : awsS3Service.uploadImage(thumbnailImg, "course"));
+                        : awsS3Service.uploadImage(placeImages.get("thumbnailImg").get(0), "course"));
 
         return CourseResponseDto.of(course);
     }
