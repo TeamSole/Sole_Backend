@@ -88,6 +88,10 @@ public class HistoryService {
 
     // 장소 최빈값
     public String makeMostRegion(List<Course> courses) {
+        if (courses.isEmpty()) {
+            return null;
+        }
+
         List<String> regions = courses.stream()
                 .map(course -> course.getPlaces().get(0))
                 .map(Place::getGps)
@@ -116,6 +120,10 @@ public class HistoryService {
 
     // 장소 카테고리 mapToSet
     public Set<PlaceCategory> makeMostPlaceCategories(List<PlaceCategory> placeCategories) {
+        if (placeCategories.isEmpty()) {
+            return Collections.emptySet();
+        }
+
         HashMap<PlaceCategory, Integer> dic = new HashMap<>();
         for (PlaceCategory placeCategory : placeCategories) {
             int x = 1;
@@ -138,6 +146,10 @@ public class HistoryService {
 
     // 대중교통 카테고리 mapToSet
     public Set<TransCategory> makeMostTransCategories(List<TransCategory> transCategories) {
+        if (transCategories.isEmpty()) {
+            return Collections.emptySet();
+        }
+
         HashMap<TransCategory, Integer> dic = new HashMap<>();
         for (TransCategory transCategory : transCategories) {
             int x = 1;

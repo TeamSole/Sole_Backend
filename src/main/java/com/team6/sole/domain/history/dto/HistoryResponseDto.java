@@ -58,7 +58,9 @@ public class HistoryResponseDto {
                 .nickname(writer.getNickname())
                 .profileImg(writer.getProfileImgUrl())
                 .totalDate(betweenDays)
-                .totalPlaces(writer.getCourses().stream()
+                .totalPlaces(writer.getCourses().isEmpty()
+                        ? 0
+                        : writer.getCourses().stream()
                         .mapToInt(i -> i.getPlaces().size())
                         .sum())
                 .totalCourses(writer.getCourses().size())
