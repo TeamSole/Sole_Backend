@@ -78,20 +78,20 @@ public class ScrapApiController {
 
     @DeleteMapping("default/{courseIds}")
     @ApiOperation(value = "기본 스크랩 폴더에서 코스 삭제(스크랩 취소)")
-    public ResponseEntity<Void> delScrap(
+    public ResponseEntity<CommonApiResponse<Boolean>> delScrap(
             @ApiIgnore Authentication authentication,
             @PathVariable List<Long> courseIds) {
         scrapService.delScrap(authentication.getName(), courseIds);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(CommonApiResponse.of(true));
     }
 
     @DeleteMapping("{scrapFolderId}/{courseIds}")
     @ApiOperation(value = "새 스크랩 폴더에서 코스 삭제")
-    public ResponseEntity<Void> delNewScrap(
+    public ResponseEntity<CommonApiResponse<Boolean>> delNewScrap(
             @ApiIgnore Authentication authentication,
             @PathVariable Long scrapFolderId,
             @PathVariable List<Long> courseIds) {
         scrapService.delNewScrap(authentication.getName(), scrapFolderId, courseIds);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(CommonApiResponse.of(true));
     }
 }
