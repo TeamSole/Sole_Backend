@@ -14,13 +14,16 @@ import com.team6.sole.domain.scrap.entity.ScrapFolder;
 import com.team6.sole.global.error.ErrorCode;
 import com.team6.sole.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class ScrapService {
     private final ScrapFolderRespository scrapFolderRespository;
@@ -34,6 +37,7 @@ public class ScrapService {
     public ScrapFolderResponseDto makeScrapFolder(String socialId, ScrapFolderRequestDto scrapFolderRequestDto) {
         ScrapFolder scrapFolder = ScrapFolder.builder()
                 .scrapFolderName(scrapFolderRequestDto.getScrapFolderName())
+                .courseMemberScrapFolders(new ArrayList<>())
                 .member(memberRepository.findBySocialId(socialId)
                         .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND)))
                 .build();
