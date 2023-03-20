@@ -28,10 +28,10 @@ public class ScrapFolderResponseDto {
         return ScrapFolderResponseDto.builder()
                 .scrapFolderId(scrapFolder.getScrapFolderId())
                 .scrapFolderName(scrapFolder.getScrapFolderName())
-                .scrapFolderImg(scrapFolder.getCourseMemberScrapFolders() == null
+                .scrapFolderImg(scrapFolder.getCourseMemberScrapFolders().isEmpty()
                                 ? null
                                 : scrapFolder.getCourseMemberScrapFolders().get(0).getCourseMember().getCourse().getThumbnailUrl())
-                .scrapCount(scrapFolder.getCourseMemberScrapFolders() == null
+                .scrapCount(scrapFolder.getCourseMemberScrapFolders().isEmpty()
                                 ? 0
                                 : scrapFolder.getCourseMemberScrapFolders().size())
                 .build();
