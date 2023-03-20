@@ -305,4 +305,29 @@ public class HomeService {
 
         return FavCategoryResponseDto.of(member);
     }
+
+    public static String makeShortenAddress(String address) {
+        String[] addressArr = address.split(" ");
+        String shortenAddress = "";
+        if (addressArr[0].equals("서울특별시")
+                || addressArr[0].equals("부산광역시")
+                || addressArr[0].equals("대구광역시")
+                || addressArr[0].equals("인천광역시")
+                || addressArr[0].equals("대전광역시")
+                || addressArr[0].equals("울산광역시")
+                || addressArr[0].equals("광주광역시")
+                || addressArr[0].equals("세종특별자치시")
+                || addressArr[0].equals("제주특별자치도")) {
+            shortenAddress = addressArr[0].substring(0, 2) + " " + addressArr[1];
+        }
+        else if (addressArr[0].equals("경기도")
+                || addressArr[0].equals("강원도")) {
+            shortenAddress = addressArr[0].substring(0, 2) + " " + addressArr[1];
+        }
+        else {
+            shortenAddress =  addressArr[0].charAt(0) + addressArr[0].charAt(2) + " " + addressArr[1];
+        }
+
+        return shortenAddress;
+    }
 }

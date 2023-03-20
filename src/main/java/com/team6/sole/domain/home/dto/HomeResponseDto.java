@@ -1,5 +1,6 @@
 package com.team6.sole.domain.home.dto;
 
+import com.team6.sole.domain.home.HomeService;
 import com.team6.sole.domain.home.entity.Course;
 import lombok.*;
 
@@ -54,7 +55,7 @@ public class HomeResponseDto {
                 .thumbnailImg(course.getThumbnailUrl())
                 .title(course.getTitle())
                 .isLike(isLike)
-                .address(course.getPlaces().get(0).getGps().getAddress())
+                .address(HomeService.makeShortenAddress(course.getPlaces().get(0).getGps().getAddress()))
                 .duration(course.getDuration())
                 .distance(course.getDistance())
                 .categories(mergedSet)
