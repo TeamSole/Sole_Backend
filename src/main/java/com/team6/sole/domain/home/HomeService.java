@@ -179,13 +179,13 @@ public class HomeService {
         Member member = memberRepository.findBySocialId(socialId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
-        boolean isWriter = course.getWriter().getMemberId().equals(member.getMemberId());
+        boolean checkWriter = course.getWriter().getMemberId().equals(member.getMemberId());
 
         FollowStatus followStatus = followRepository.existsByFromMember_MemberIdAndToMember_MemberId(member.getMemberId(), course.getWriter().getMemberId())
                 ? FollowStatus.FOLLOWING
                 : FollowStatus.NOT_FOLLOW;
 
-        return CourseDetailResponseDto.of(course, isWriter, followStatus);
+        return CourseDetailResponseDto.of(course, checkWriter, followStatus);
     }
 
     // 코스 업데이트

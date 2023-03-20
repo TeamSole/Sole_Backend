@@ -20,7 +20,7 @@ public class CourseDetailResponseDto {
 
     private MemberResponseDto writer;
 
-    private boolean isWriter;
+    private boolean checkWriter;
 
     private int follower;
 
@@ -45,13 +45,13 @@ public class CourseDetailResponseDto {
     private List<PlaceResponseDto> placeResponseDtos = new ArrayList<>();
 
     @Builder
-    public CourseDetailResponseDto(Long courseId, MemberResponseDto writer, boolean isWriter, int follower, int following,
+    public CourseDetailResponseDto(Long courseId, MemberResponseDto writer, boolean checkWriter, int follower, int following,
                                    FollowStatus followStatus, String title, int scrapCount, String description,
                                    String startDate, int duration, double distance,
                                    Set<?> categories, List<PlaceResponseDto> placeResponseDtos) {
         this.courseId = courseId;
         this.writer = writer;
-        this.isWriter = isWriter;
+        this.checkWriter = checkWriter;
         this.follower = follower;
         this.following = following;
         this.followStatus = followStatus;
@@ -65,7 +65,7 @@ public class CourseDetailResponseDto {
         this.placeResponseDtos = placeResponseDtos;
     }
 
-    public static CourseDetailResponseDto of(Course course, boolean isWriter, FollowStatus followStatus) {
+    public static CourseDetailResponseDto of(Course course, boolean checkWriter, FollowStatus followStatus) {
         Set<Object> mergedSet = new HashSet<>();
         mergedSet.addAll(course.getPlaceCategories());
         mergedSet.addAll(course.getTransCategories());
@@ -73,7 +73,7 @@ public class CourseDetailResponseDto {
         return CourseDetailResponseDto.builder()
                 .courseId(course.getCourseId())
                 .writer(MemberResponseDto.of(course.getWriter()))
-                .isWriter(isWriter)
+                .checkWriter(checkWriter)
                 .follower(course.getWriter().getFollowInfo().getFollower())
                 .following(course.getWriter().getFollowInfo().getFollowing())
                 .followStatus(followStatus)
