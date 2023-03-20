@@ -38,7 +38,7 @@ public class CourseDetailResponseDto {
 
     private int duration;
 
-    private int distance;
+    private double distance;
 
     private Set<?> categories = new HashSet<>();
 
@@ -47,7 +47,7 @@ public class CourseDetailResponseDto {
     @Builder
     public CourseDetailResponseDto(Long courseId, MemberResponseDto writer, boolean isWriter, int follower, int following,
                                    FollowStatus followStatus, String title, int scrapCount, String description,
-                                   String startDate, int duration, int distance,
+                                   String startDate, int duration, double distance,
                                    Set<?> categories, List<PlaceResponseDto> placeResponseDtos) {
         this.courseId = courseId;
         this.writer = writer;

@@ -23,7 +23,7 @@ public class HomeResponseDto {
 
     private int duration;
 
-    private int distance;
+    private double distance;
 
     private Set<?> categories = new HashSet<>();
 
@@ -31,7 +31,7 @@ public class HomeResponseDto {
 
     @Builder
     public HomeResponseDto(Long courseId, String thumbnailImg, String title,
-                           boolean isLike, String address, int duration, int distance,
+                           boolean isLike, String address, int duration, double distance,
                            Set<?> categories, boolean finalPage) {
         this.courseId = courseId;
         this.thumbnailImg = thumbnailImg;
