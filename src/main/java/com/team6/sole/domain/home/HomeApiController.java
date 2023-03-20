@@ -110,4 +110,12 @@ public class HomeApiController {
             @RequestBody FavCategoryRequestDto favCategoryRequestDto) {
         return ResponseEntity.ok(CommonApiResponse.of(homeService.modFavCategory(authentication.getName(), favCategoryRequestDto)));
     }
+
+    @PostMapping("/imageTest")
+    @ApiOperation(value = "이미지 테스트")
+    public ResponseEntity<String> upload(MultipartHttpServletRequest multipartHttpServletRequest) {
+        Map<String, List<MultipartFile>> fileMap = multipartHttpServletRequest.getMultiFileMap(); // 파일들을 Map 자료구조에 담아 가져오기
+
+        return ResponseEntity.ok(homeService.imageTest(fileMap));
+    }
 }

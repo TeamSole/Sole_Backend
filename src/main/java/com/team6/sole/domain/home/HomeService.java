@@ -306,6 +306,14 @@ public class HomeService {
         return FavCategoryResponseDto.of(member);
     }
 
+    // 이미지 업로드 테스트
+    @Transactional
+    public String imageTest(Map<String, List<MultipartFile>> fileMap) {
+        awsS3Service.uploadImage(fileMap.get("thumbnailImg").get(0), "course");
+
+        return "성공";
+    }
+
     public static String makeShortenAddress(String address) {
         String[] addressArr = address.split(" ");
         String shortenAddress = "";

@@ -37,7 +37,7 @@ public class Course extends BaseTimeEntity {
 
     private int duration;
 
-    private int distance;
+    private double distance;
 
     @ElementCollection(fetch = FetchType.LAZY) @Enumerated(EnumType.STRING)
     Set<PlaceCategory> placeCategories;
