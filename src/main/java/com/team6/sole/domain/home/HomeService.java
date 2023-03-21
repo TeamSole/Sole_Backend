@@ -15,6 +15,7 @@ import com.team6.sole.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -40,6 +41,9 @@ public class HomeService {
     private final DeclarationRepository declarationRepository;
     private final AwsS3ServiceImpl awsS3Service;
     private final WebClient webClient;
+
+    @Value("${GOOGLE.APP_KEY}")
+    private String APP_KEY;
     
     // 현재 위치 설정
     @Transactional
@@ -383,7 +387,7 @@ public class HomeService {
                                 return builder
                                         .queryParam("latlng", latitude + "," + longitude)
                                         .queryParam("language", "ko")
-                                        .queryParam("key", "AIzaSyAjCL7LHTj9F1FFbuTdheL6a-OhKNeg5dE")
+                                        .queryParam("key", APP_KEY)
                                         .build();
                             })
                             .retrieve()
