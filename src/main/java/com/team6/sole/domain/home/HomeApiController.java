@@ -22,6 +22,13 @@ import java.util.Map;
 public class HomeApiController {
     private final HomeService homeService;
 
+    @GetMapping("currentGps")
+    @ApiOperation(value = "현재 위치 주소 조회")
+    public ResponseEntity<CommonApiResponse<String>> getCurrentGps(
+            @ApiIgnore Authentication authentication) {
+        return ResponseEntity.ok(CommonApiResponse.of(homeService.showCurrentGps(authentication.getName())));
+    }
+
     @PatchMapping("currentGps")
     @ApiOperation(value = "현재 위치 변경")
     public ResponseEntity<CommonApiResponse<GpsResponseDto>> setCurrentGps(

@@ -10,6 +10,7 @@ import com.team6.sole.domain.member.MemberRepository;
 import com.team6.sole.domain.member.entity.Member;
 import com.team6.sole.global.config.s3.AwsS3ServiceImpl;
 import com.team6.sole.global.error.ErrorCode;
+import com.team6.sole.global.error.exception.BadRequestException;
 import com.team6.sole.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -19,6 +20,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -37,6 +39,7 @@ public class HomeService {
     private final MemberRepository memberRepository;
     private final DeclarationRepository declarationRepository;
     private final AwsS3ServiceImpl awsS3Service;
+    private final WebClient webClient;
     
     // 현재 위치 설정
     @Transactional
@@ -44,9 +47,26 @@ public class HomeService {
         Member member = memberRepository.findBySocialId(socialId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
-        member.setCurrentGps(gpsRequestDto.getGps());
+        String address = convertAdress(gpsRequestDto.getLatitude(), gpsRequestDto.getLongitude());
+        int idx = address.indexOf("국");
+
+        member.setCurrentGps(
+                Gps.builder()
+                        .address(address.substring(idx + 2))
+                        .latitude(gpsRequestDto.getLatitude())
+                        .longitude(gpsRequestDto.getLongitude())
+                        .build());
 
         return GpsResponseDto.of(member);
+    }
+
+    // 현재 위치 보기
+    @Transactional(readOnly = true)
+    public String showCurrentGps(String socialId) {
+        Member member = memberRepository.findBySocialId(socialId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+
+        return makeShortenAddress(member.getCurrentGps().getAddress());
     }
 
     // 인기 코스 추천(7개 fix)
@@ -349,5 +369,29 @@ public class HomeService {
         }
 
         return shortenAddress;
+    }
+
+    // 현재 위치 좌표 -> 주소 변환
+    @SneakyThrows
+    public String convertAdress(Double latitude, Double longitude) {
+        String getAdressURL = "https://maps.googleapis.com/maps/api/geocode/json";
+
+        try {
+            return Objects.requireNonNull(webClient
+                            .get()
+                            .uri(getAdressURL, builder -> {
+                                return builder
+                                        .queryParam("latlng", latitude + "," + longitude)
+                                        .queryParam("language", "ko")
+                                        .queryParam("key", "AIzaSyAjCL7LHTj9F1FFbuTdheL6a-OhKNeg5dE")
+                                        .build();
+                            })
+                            .retrieve()
+                            .bodyToMono(GeocodeResponseDto.class)
+                            .block()).getResults()[0].getFormatted_address();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new BadRequestException(ErrorCode.GOOGLE_BAD_REQUEST);
+        }
     }
 }

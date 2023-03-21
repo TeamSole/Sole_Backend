@@ -10,5 +10,6 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class GpsReqeustDto {
-    private Gps gps;
+    private Double latitude;
+    private Double longitude;
 }
