@@ -53,6 +53,9 @@ public class HistoryService {
 
         // 내가 기록한 코스 findAll
         List<Course> courses = courseCustomRepository.findAllByWriter(courseId, member);
+        boolean finalPage = courses.size() - 1 != -1 && courseCustomRepository.findAllByWriter(
+                courses.get(courses.size() - 1).getCourseId(),
+                member).isEmpty();
 
         // 내가 기록한 코스 중 검색 조건에 맞는 코스만 필터링
         if (historySearchRequestDto != null) {
@@ -62,17 +65,18 @@ public class HistoryService {
                     historySearchRequestDto.getPlaceCategories(),
                     historySearchRequestDto.getWithCategories(),
                     historySearchRequestDto.getTransCategories());
+            boolean searchFinalPage = filterCourses.size() - 1 != -1 && courseCustomRepository.findAllByCatgegoryAndWriter(
+                    filterCourses.get(filterCourses.size() - 1).getCourseId(),
+                    member,
+                    historySearchRequestDto.getPlaceCategories(),
+                    historySearchRequestDto.getWithCategories(),
+                    historySearchRequestDto.getTransCategories()).isEmpty();
 
             return filterCourses.stream()
                     .map(course -> HomeResponseDto.of(
                             course,
                             true,
-                            courseCustomRepository.findAllByCatgegoryAndWriter(
-                                    filterCourses.get(filterCourses.size() - 1).getCourseId(),
-                                    member,
-                                    historySearchRequestDto.getPlaceCategories(),
-                                    historySearchRequestDto.getWithCategories(),
-                                    historySearchRequestDto.getTransCategories()).isEmpty()))
+                            searchFinalPage))
                     .collect(Collectors.toList());
         }
 
@@ -80,9 +84,7 @@ public class HistoryService {
                 .map(course -> HomeResponseDto.of(
                         course,
                         true,
-                        courseCustomRepository.findAllByWriter(
-                                courses.get(courses.size() - 1).getCourseId(),
-                                member).isEmpty()))
+                        finalPage))
                 .collect(Collectors.toList());
     }
 

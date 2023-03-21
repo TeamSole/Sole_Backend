@@ -109,13 +109,14 @@ public class FollowService {
 
         // 최근 코스들 set
         List<Course> courses = courseCustomRepository.findAllByWriter(courseId, followInfoMember);
+        boolean finalPage = courses.size() - 1 != -1 && courseCustomRepository.findAllByWriter(
+                courses.get(courses.size() - 1).getCourseId(),
+                member).isEmpty();
         followInfoResponseDto.setRecentCourses(courses.stream()
                 .map(recent -> HomeResponseDto.of(
                         recent,
                         courseMemberRepository.existsByMemberAndCourse_CourseId(member, recent.getCourseId()),
-                        courseCustomRepository.findAllByWriter(
-                                courses.get(courses.size() - 1).getCourseId(),
-                                followInfoMember).isEmpty()))
+                        finalPage))
                 .collect(Collectors.toList()));
         return followInfoResponseDto;
     }

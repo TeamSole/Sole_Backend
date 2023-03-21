@@ -104,7 +104,7 @@ public class HomeService {
                         member.getFavoriteCategory().getPlaceCategories(),
                         member.getFavoriteCategory().getWithCategories(),
                         member.getFavoriteCategory().getTransCategories());
-        boolean finalPage = courseCustomRepository.findAllByCategory(courses.get(courses.size() - 1).getCourseId(),
+        boolean finalPage = courses.size() - 1 != -1 && courseCustomRepository.findAllByCategory(courses.get(courses.size() - 1).getCourseId(),
                 member.getFavoriteCategory().getPlaceCategories(),
                 member.getFavoriteCategory().getWithCategories(),
                 member.getFavoriteCategory().getTransCategories()).isEmpty();
@@ -118,7 +118,7 @@ public class HomeService {
                 .collect(Collectors.toList());
     }
 
-    // 홈 검색(10개 +10n)
+    // 홈 검색(10개 + 10n)
     @Transactional(readOnly = true)
     public List<HomeResponseDto> searchHomes(String socialId, Long courseId, String searchWord) {
         Member member = memberRepository.findBySocialId(socialId)
@@ -126,6 +126,9 @@ public class HomeService {
 
         // 검색어로 코스 찾기
         List<Course> searchCourses = courseCustomRepository.findAllByTitleContaining(courseId, searchWord);
+        boolean finalPage = searchCourses.size() - 1 != -1 && courseCustomRepository.findAllByTitleContaining(
+                searchCourses.get(searchCourses.size() - 1).getCourseId(),
+                searchWord).isEmpty();
 
         return searchCourses.stream()
                 .map(course -> HomeResponseDto.of(
@@ -135,9 +138,7 @@ public class HomeService {
                                 member,
                                 course.getCourseId()),
                         // 마지막 페이지여부
-                        courseCustomRepository.findAllByTitleContaining(
-                                searchCourses.get(searchCourses.size() - 1).getCourseId(),
-                                searchWord).isEmpty()))
+                        finalPage))
                 .collect(Collectors.toList());
     }
     
