@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.team6.sole.domain.home.HomeService.makeShortenAddress;
+
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -36,6 +38,8 @@ public class CourseDetailResponseDto {
 
     private String startDate;
 
+    private String address;
+
     private int duration;
 
     private double distance;
@@ -47,7 +51,7 @@ public class CourseDetailResponseDto {
     @Builder
     public CourseDetailResponseDto(Long courseId, MemberResponseDto writer, boolean checkWriter, int follower, int following,
                                    FollowStatus followStatus, String title, int scrapCount, String description,
-                                   String startDate, int duration, double distance,
+                                   String startDate, String address, int duration, double distance,
                                    Set<?> categories, List<PlaceResponseDto> placeResponseDtos) {
         this.courseId = courseId;
         this.writer = writer;
@@ -59,6 +63,7 @@ public class CourseDetailResponseDto {
         this.scrapCount = scrapCount;
         this.description = description;
         this.startDate = startDate;
+        this.address = address;
         this.duration = duration;
         this.distance = distance;
         this.categories = categories;
@@ -81,6 +86,7 @@ public class CourseDetailResponseDto {
                 .scrapCount(course.getScrapCount())
                 .description(course.getDescription())
                 .startDate(course.getStartDate().toString())
+                .address(makeShortenAddress(course.getPlaces().get(0).getGps().getAddress()))
                 .duration(course.getDuration())
                 .distance(course.getDistance())
                 .categories(mergedSet)
