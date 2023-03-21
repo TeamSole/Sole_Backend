@@ -67,9 +67,9 @@ public class HomeService {
         Member member = memberRepository.findBySocialId(socialId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
-        if (member.getFavoriteCategory().getTransCategories() == null
-                && member.getFavoriteCategory().getPlaceCategories() == null
-                && member.getFavoriteCategory().getWithCategories() == null) {
+        if (member.getFavoriteCategory().getTransCategories().isEmpty()
+                && member.getFavoriteCategory().getPlaceCategories().isEmpty()
+                && member.getFavoriteCategory().getWithCategories().isEmpty()) {
             return Collections.emptyList();
         }
 
