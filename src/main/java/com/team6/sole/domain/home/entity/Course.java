@@ -96,7 +96,7 @@ public class Course extends BaseTimeEntity {
     @Builder
     public Course(Long courseId, String thumbnailUrl, int scrapCount,
                   String title, String description, Date startDate,
-                  int duration, int distance,
+                  int duration, double distance,
                   Set<PlaceCategory> placeCategories, Set<WithCategory> withCategories, Set<TransCategory> transCategories,
                   Member writer, Member member, List<Place> places, List<CourseMember> courseMembers,
                   List<Declaration> declarations) {

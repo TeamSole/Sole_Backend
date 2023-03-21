@@ -12,6 +12,7 @@ import com.team6.sole.global.config.s3.AwsS3ServiceImpl;
 import com.team6.sole.global.error.ErrorCode;
 import com.team6.sole.global.error.exception.BadRequestException;
 import com.team6.sole.global.error.exception.NotFoundException;
+import com.team6.sole.infra.direction.DirectionService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.team6.sole.infra.direction.DirectionService.calculateDistance;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -41,6 +44,7 @@ public class HomeService {
     private final DeclarationRepository declarationRepository;
     private final AwsS3ServiceImpl awsS3Service;
     private final WebClient webClient;
+    private final DirectionService directionService;
 
     @Value("${GOOGLE.APP_KEY}")
     private String APP_KEY;
@@ -151,6 +155,26 @@ public class HomeService {
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
+        // 장소별 위, 경도 가져오기
+        List<Gps> locations = courseRequestDto.getPlaceRequestDtos().stream()
+                .map(placeRequestDto -> Gps.builder()
+                        .latitude(placeRequestDto.getLatitude())
+                        .longitude(placeRequestDto.getLongitude())
+                        .build())
+                .collect(Collectors.toList());
+        
+        // 코스 최단거리 합 계산
+        double totalDistance = 0;
+        for (int i = 0; i < locations.size(); i++) {
+            if (i == locations.size() - 1) {
+                break;
+            }
+            Gps start = locations.get(i);
+            Gps end = locations.get(i + 1);
+            totalDistance += calculateDistance(start.getLatitude(), start.getLongitude(),
+                    end.getLatitude(), end.getLongitude());
+        }
+
         // 코스 저장
         Course course = Course.builder()
                 .thumbnailUrl(courseImagesMap.get("thumbnailImg") == null
@@ -163,7 +187,7 @@ public class HomeService {
                 .duration(courseRequestDto.getPlaceRequestDtos().stream()
                         .mapToInt(PlaceRequestDto::getDuration)
                         .sum())
-                .distance(courseRequestDto.getDistance())
+                .distance(totalDistance)
                 .placeCategories(courseRequestDto.getPlaceCategories())
                 .withCategories(courseRequestDto.getWithCategories())
                 .transCategories(courseRequestDto.getTransCategories())
