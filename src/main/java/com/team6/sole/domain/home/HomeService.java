@@ -154,6 +154,7 @@ public class HomeService {
         Member writer = memberRepository.findBySocialId(socialId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        log.info(String.valueOf(courseImagesMap.size()));
 
         // 장소별 위, 경도 가져오기
         List<Gps> locations = courseRequestDto.getPlaceRequestDtos().stream()
