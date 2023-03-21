@@ -95,7 +95,7 @@ public class FollowService {
 
         // 인기 코스 set
         followInfoResponseDto.setPopularCourse(
-                followInfoMember.getCourses() == null
+                followInfoMember.getCourses().isEmpty()
                         ? null
                         : courseRepository.findAllByWriter(
                                 followInfoMember,
@@ -105,7 +105,8 @@ public class FollowService {
                                 popular,
                                 courseMemberRepository.existsByMemberAndCourse_CourseId(member, popular.getCourseId()),
                                 true))
-                        .collect(Collectors.toList()).get(0));
+                        .collect(Collectors.toList())
+                        .get(0));
 
         // 최근 코스들 set
         List<Course> courses = courseCustomRepository.findAllByWriter(courseId, followInfoMember);
