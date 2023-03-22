@@ -394,8 +394,15 @@ public class HomeService {
                 || addressArr[0].equals("강원도")) {
             shortenAddress = addressArr[0].substring(0, 2) + " " + addressArr[1];
         }
-        else {
+        else if (addressArr[0].equals("충청북도")
+                || addressArr[0].equals("충청남도")
+                || addressArr[0].equals("전라북도")
+                || addressArr[0].equals("전라남도")
+                || addressArr[0].equals("경상북도")
+                || addressArr[0].equals("경상남도")) {
             shortenAddress =  addressArr[0].charAt(0) + addressArr[0].charAt(2) + " " + addressArr[1];
+        } else {
+            shortenAddress = addressArr[0];
         }
 
         return shortenAddress;
