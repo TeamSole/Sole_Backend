@@ -91,7 +91,7 @@ public class HomeService {
 
     // 인기 코스 추천(7개 fix)
     @Transactional(readOnly = true)
-    /*@Cacheable(value = "recommends")*/
+    @Cacheable(value = "recommends")
     public List<RecommendCourseResponseDto> showRecommendCourses(String socialId) {
         Member member = memberRepository.findBySocialId(socialId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));

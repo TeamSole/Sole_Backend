@@ -32,6 +32,8 @@ public class CourseDetailResponseDto {
 
     private String title;
 
+    private String thumbnailUrl;
+
     private int scrapCount;
 
     private String description;
@@ -50,7 +52,7 @@ public class CourseDetailResponseDto {
 
     @Builder
     public CourseDetailResponseDto(Long courseId, MemberResponseDto writer, boolean checkWriter, int follower, int following,
-                                   FollowStatus followStatus, String title, int scrapCount, String description,
+                                   FollowStatus followStatus, String title, String thumbnailUrl, int scrapCount, String description,
                                    String startDate, String address, int duration, double distance,
                                    Set<?> categories, List<PlaceResponseDto> placeResponseDtos) {
         this.courseId = courseId;
@@ -60,6 +62,7 @@ public class CourseDetailResponseDto {
         this.following = following;
         this.followStatus = followStatus;
         this.title = title;
+        this.thumbnailUrl = thumbnailUrl;
         this.scrapCount = scrapCount;
         this.description = description;
         this.startDate = startDate;
@@ -83,6 +86,7 @@ public class CourseDetailResponseDto {
                 .following(course.getWriter().getFollowInfo().getFollowing())
                 .followStatus(followStatus)
                 .title(course.getTitle())
+                .thumbnailUrl(course.getThumbnailUrl())
                 .scrapCount(course.getScrapCount())
                 .description(course.getDescription())
                 .startDate(course.getStartDate().toString())
