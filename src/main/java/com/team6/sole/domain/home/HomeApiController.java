@@ -84,6 +84,13 @@ public class HomeApiController {
         homeService.delCourse(courseId);
         return ResponseEntity.ok(CommonApiResponse.of(true));
     }
+    
+    @GetMapping("recommendTest")
+    @ApiOperation(value = "추천 코스 보기테스트")
+    public ResponseEntity<CommonApiResponse<List<RecommendCourseResponseDto>>> showRecommendTest(
+            @ApiIgnore Authentication authentication) {
+        return ResponseEntity.ok(CommonApiResponse.of(homeService.showRecommendTest(authentication.getName())));
+    }
 
     @GetMapping("recommend")
     @ApiOperation(value = "추천 코스 보기")

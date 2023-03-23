@@ -76,6 +76,18 @@ public class HomeService {
 
         return makeShortenAddress(member.getCurrentGps().getAddress());
     }
+    
+    // 인기 코스 보기 테스트
+    @Transactional(readOnly = true)
+    public List<RecommendCourseResponseDto> showRecommendTest(String socialId) {
+        Member member = memberRepository.findBySocialId(socialId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+        List<Course> recommendCourses = directionService.buildCourses(member.getCurrentGps());
+
+        return recommendCourses.stream()
+                .map(RecommendCourseResponseDto::of)
+                .collect(Collectors.toList());
+    }
 
     // 인기 코스 추천(7개 fix)
     @Transactional(readOnly = true)
