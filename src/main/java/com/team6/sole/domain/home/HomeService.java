@@ -79,7 +79,7 @@ public class HomeService {
 
     // 인기 코스 추천(7개 fix)
     @Transactional(readOnly = true)
-    @Cacheable(value = "recommends")
+    /*@Cacheable(value = "recommends")*/
     public List<RecommendCourseResponseDto> showRecommendCourses(String socialId) {
         Member member = memberRepository.findBySocialId(socialId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
@@ -108,7 +108,8 @@ public class HomeService {
                         member.getFavoriteCategory().getPlaceCategories(),
                         member.getFavoriteCategory().getWithCategories(),
                         member.getFavoriteCategory().getTransCategories());
-        boolean finalPage = courses.size() - 1 != -1 && courseCustomRepository.findAllByCategory(courses.get(courses.size() - 1).getCourseId(),
+        boolean finalPage = courses.size() - 1 != -1
+                && courseCustomRepository.findAllByCategory(courses.get(courses.size() - 1).getCourseId(),
                 member.getFavoriteCategory().getPlaceCategories(),
                 member.getFavoriteCategory().getWithCategories(),
                 member.getFavoriteCategory().getTransCategories()).isEmpty();
