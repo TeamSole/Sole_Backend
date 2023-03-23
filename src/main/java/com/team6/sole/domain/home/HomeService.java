@@ -263,27 +263,47 @@ public class HomeService {
 
         // 장소
         for (PlaceUpdateRequestDto placeUpdateRequestDto : courseUpdateRequestDto.getPlaceUpdateRequestDtos()) {
-            Place place = placeRepository.findById(placeUpdateRequestDto.getPlaceId())
-                    .orElseThrow(() -> new NotFoundException(ErrorCode.PLACE_NOT_FOUND));
-            place.modPlace(
-                    placeUpdateRequestDto.getPlaceName(),
-                    placeUpdateRequestDto.getDuration(),
-                    placeUpdateRequestDto.getDescription(),
-                    Gps.builder()
-                            .address(placeUpdateRequestDto.getAddress())
-                            .latitude(placeUpdateRequestDto.getLatitude())
-                            .longitude(placeUpdateRequestDto.getLongitude())
-                            .distance(0.0)
-                            .build());
+            if (placeUpdateRequestDto.getPlaceId() == null) {
+                Place place = Place.builder()
+                        .placeName(placeUpdateRequestDto.getPlaceName())
+                        .duration(placeUpdateRequestDto.getDuration())
+                        .description(placeUpdateRequestDto.getDescription())
+                        .gps(
+                                Gps.builder()
+                                        .address(placeUpdateRequestDto.getAddress())
+                                        .latitude(placeUpdateRequestDto.getLatitude())
+                                        .longitude(placeUpdateRequestDto.getLongitude())
+                                        .build())
+                        .placeImgUrls(placeImages.get(placeUpdateRequestDto.getPlaceName()) == null
+                                ? null
+                                : awsS3Service.uploadImage(placeImages.get(placeUpdateRequestDto.getPlaceName()), "place"))
+                        .course(course)
+                        .build();
+                placeRepository.saveAndFlush(place);
+                course.putPlace(place);
+            } else {
+                Place place = placeRepository.findById(placeUpdateRequestDto.getPlaceId())
+                        .orElseThrow(() -> new NotFoundException(ErrorCode.PLACE_NOT_FOUND));
+                place.modPlace(
+                        placeUpdateRequestDto.getPlaceName(),
+                        placeUpdateRequestDto.getDuration(),
+                        placeUpdateRequestDto.getDescription(),
+                        Gps.builder()
+                                .address(placeUpdateRequestDto.getAddress())
+                                .latitude(placeUpdateRequestDto.getLatitude())
+                                .longitude(placeUpdateRequestDto.getLongitude())
+                                .distance(0.0)
+                                .build());
 
-            place.modPlaceImgUrls(
-                    placeImages.get(placeUpdateRequestDto.getPlaceName()) == null
-                            ? placeUpdateRequestDto.getPlaceImgUrls()
-                            : Stream.of(
-                                    awsS3Service.uploadImage(placeImages.get(placeUpdateRequestDto.getPlaceName()), "place"),
-                                    placeUpdateRequestDto.getPlaceImgUrls())
-                            .flatMap(Collection::stream)
-                            .collect(Collectors.toList()));
+                place.modPlaceImgUrls(
+                        placeImages.get(placeUpdateRequestDto.getPlaceName()) == null
+                                ? placeUpdateRequestDto.getPlaceImgUrls()
+                                : Stream.of(
+                                        awsS3Service.uploadImage(placeImages.get(placeUpdateRequestDto.getPlaceName()), "place"),
+                                        placeUpdateRequestDto.getPlaceImgUrls())
+                                .flatMap(Collection::stream)
+                                .collect(Collectors.toList()));
+            }
         }
 
         // 장소별 위, 경도 가져오기
