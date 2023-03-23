@@ -277,10 +277,10 @@ public class HomeService {
                             .build());
 
             place.modPlaceImgUrls(
-                    placeImages.get(placeUpdateRequestDto.getPlaceId().toString()) == null
+                    placeImages.get(placeUpdateRequestDto.getPlaceName()) == null
                             ? placeUpdateRequestDto.getPlaceImgUrls()
                             : Stream.of(
-                                    awsS3Service.uploadImage(placeImages.get(placeUpdateRequestDto.getPlaceId().toString()), "place"),
+                                    awsS3Service.uploadImage(placeImages.get(placeUpdateRequestDto.getPlaceName()), "place"),
                                     placeUpdateRequestDto.getPlaceImgUrls())
                             .flatMap(Collection::stream)
                             .collect(Collectors.toList()));
