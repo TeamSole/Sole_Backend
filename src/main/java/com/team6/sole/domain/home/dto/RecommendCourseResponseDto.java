@@ -3,10 +3,12 @@ package com.team6.sole.domain.home.dto;
 import com.team6.sole.domain.home.entity.Course;
 import lombok.*;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class RecommendCourseResponseDto {
+public class RecommendCourseResponseDto implements Serializable {
     private Long courseId;
 
     private String courseName;
