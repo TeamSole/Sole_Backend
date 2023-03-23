@@ -267,10 +267,30 @@ public class HomeService {
                     placeImages.get(placeUpdateRequestDto.getPlaceId().toString()) == null
                             ? placeUpdateRequestDto.getPlaceImgUrls()
                             : Stream.of(
-                                    placeUpdateRequestDto.getPlaceImgUrls(), awsS3Service.uploadImage(placeImages.get(placeUpdateRequestDto.getPlaceId()), "place"),
+                                    awsS3Service.uploadImage(placeImages.get(placeUpdateRequestDto.getPlaceId().toString()), "place"),
                                     placeUpdateRequestDto.getPlaceImgUrls())
                             .flatMap(Collection::stream)
                             .collect(Collectors.toList()));
+        }
+
+        // 장소별 위, 경도 가져오기
+        List<Gps> locations = courseUpdateRequestDto.getPlaceUpdateRequestDtos().stream()
+                .map(placeRequestDto -> Gps.builder()
+                        .latitude(placeRequestDto.getLatitude())
+                        .longitude(placeRequestDto.getLongitude())
+                        .build())
+                .collect(Collectors.toList());
+
+        // 코스 최단거리 합 계산
+        double totalPlaceDistance = 0;
+        for (int i = 0; i < locations.size(); i++) {
+            if (i == locations.size() - 1) {
+                break;
+            }
+            Gps start = locations.get(i);
+            Gps end = locations.get(i + 1);
+            totalPlaceDistance += calculateDistance(start.getLatitude(), start.getLongitude(),
+                    end.getLatitude(), end.getLongitude());
         }
 
         // 코스
@@ -280,6 +300,7 @@ public class HomeService {
                 course.getPlaces().stream()
                         .mapToInt(Place::getDuration)
                         .sum(),
+                totalPlaceDistance,
                 courseUpdateRequestDto.getPlaceCategories(),
                 courseUpdateRequestDto.getWithCategories(),
                 courseUpdateRequestDto.getTransCategories(),

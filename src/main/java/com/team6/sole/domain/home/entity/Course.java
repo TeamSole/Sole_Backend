@@ -75,7 +75,7 @@ public class Course extends BaseTimeEntity {
         this.scrapCount--;
     }
 
-    public void modCourse(String title, Date startDate, int duration,
+    public void modCourse(String title, Date startDate, int duration, double distance,
                           Set<PlaceCategory> placeCategories,
                           Set<WithCategory> withCategories,
                           Set<TransCategory> transCategories,
@@ -83,6 +83,7 @@ public class Course extends BaseTimeEntity {
         this.title = title;
         this.startDate = startDate;
         this.duration = duration;
+        this.distance = distance;
         this.placeCategories = placeCategories;
         this.withCategories = withCategories;
         this.transCategories = transCategories;
