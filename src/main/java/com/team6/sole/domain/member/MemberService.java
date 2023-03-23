@@ -151,8 +151,8 @@ public class MemberService {
                 .currentGps(
                         Gps.builder()
                                 .address("서울 마포구 마포대로 122")
-                                .latitude(126.952499) // 위도(x)
-                                .longitude(37.5453021) // 경도(y)
+                                .latitude(37.5453021) // 위도(x)
+                                .longitude(126.952499) // 경도(y)
                                 .distance(0)
                                 .build()
                 )
