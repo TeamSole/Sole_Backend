@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public class DirectionService {
     private final CourseRepository courseRepository;
     private static final int MAX_SEARCH_COUNT = 7; // 최대 검색 갯수
-    private static final double RADIUS_KM = 10.0; // 반경 10 km
+    private static final double RADIUS_KM = 20.0; // 반경 10 km
 
     // 추천 코스(현재 위치 기준으로 가장 가깝고, 스크랩수가 가장 많으며, 7개)
     @Transactional(readOnly = true)
