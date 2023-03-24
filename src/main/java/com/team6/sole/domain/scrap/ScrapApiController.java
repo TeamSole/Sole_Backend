@@ -65,8 +65,9 @@ public class ScrapApiController {
     @ApiOperation(value = "기본 스크랩 폴더에서 새 폴더로 이동")
     public ResponseEntity<CommonApiResponse<NewScrapFolderResponseDto>> makeNewFolderScrap(
             @PathVariable Long scrapFolderId,
+            @ApiIgnore Authentication authentication,
             @RequestBody NewScrapFolderRequestDto newScrapFolderRequestDto) {
-        return ResponseEntity.ok(CommonApiResponse.of(scrapService.makeNewFolderScrap(scrapFolderId, newScrapFolderRequestDto.getCourseIds())));
+        return ResponseEntity.ok(CommonApiResponse.of(scrapService.makeNewFolderScrap(authentication.getName(), scrapFolderId, newScrapFolderRequestDto.getCourseIds())));
     }
 
     @GetMapping("{scrapFolderId}")

@@ -85,10 +85,10 @@ public class ScrapService {
 
     // 기본 폴더에서 새 폴더로 이동
     @Transactional
-    public NewScrapFolderResponseDto makeNewFolderScrap(Long scrapFolderId, List<Long> courseIds) {
+    public NewScrapFolderResponseDto makeNewFolderScrap(String socialId, Long scrapFolderId, List<Long> courseIds) {
         ScrapFolder scrapFolder = scrapFolderRespository.findById(scrapFolderId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.SCRAP_FOLDER_NOT_FOUND));
-        List<CourseMember> courseMembers = courseMemberRepository.findAllByCourse_CourseIdIn(courseIds);
+        List<CourseMember> courseMembers = courseMemberRepository.findAllByMember_SocialIdAndCourse_CourseIdIn(socialId, courseIds);
 
         for (CourseMember scrap : courseMembers) {
             if (courseMemberScrapFolderRepository.existsByScrapFolderAndCourseMember(scrapFolder, scrap)
