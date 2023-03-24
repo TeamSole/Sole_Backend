@@ -12,6 +12,7 @@ import com.team6.sole.domain.scrap.dto.ScrapFolderRequestDto;
 import com.team6.sole.domain.scrap.entity.CourseMemberScrapFolder;
 import com.team6.sole.domain.scrap.entity.ScrapFolder;
 import com.team6.sole.global.error.ErrorCode;
+import com.team6.sole.global.error.exception.BadRequestException;
 import com.team6.sole.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -90,6 +91,10 @@ public class ScrapService {
         List<CourseMember> courseMembers = courseMemberRepository.findAllByCourse_CourseIdIn(courseIds);
 
         for (CourseMember scrap : courseMembers) {
+            if (courseMemberScrapFolderRepository.existsByScrapFolderAndCourseMember(scrapFolder, scrap)) {
+                throw new BadRequestException(ErrorCode.ALREADY_SCRAPED);
+            }
+
             CourseMemberScrapFolder courseMemberScrapFolder = CourseMemberScrapFolder.builder()
                     .scrapFolder(scrapFolder)
                     .courseMember(scrap)
