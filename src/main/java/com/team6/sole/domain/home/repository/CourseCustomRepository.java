@@ -52,7 +52,7 @@ public class CourseCustomRepository {
                 .selectFrom(QCourse.course)
                 .where(ltCourseId(courseId), // 동적 쿼리 // 동적 쿼리
                         (QCourse.course.writer.eq(writer)))
-                .orderBy(QCourse.course.createdAt.desc())
+                .orderBy(QCourse.course.courseId.desc())
                 .limit(5)
                 .fetch();
     }
