@@ -91,7 +91,8 @@ public class ScrapService {
         List<CourseMember> courseMembers = courseMemberRepository.findAllByCourse_CourseIdIn(courseIds);
 
         for (CourseMember scrap : courseMembers) {
-            if (courseMemberScrapFolderRepository.existsByScrapFolderAndCourseMember(scrapFolder, scrap)) {
+            if (courseMemberScrapFolderRepository.existsByScrapFolderAndCourseMember(scrapFolder, scrap)
+                    || scrapFolder.getScrapFolderName().equals("기본 폴더")) {
                 throw new BadRequestException(ErrorCode.ALREADY_SCRAPED);
             }
 
