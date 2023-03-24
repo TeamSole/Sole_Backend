@@ -112,7 +112,7 @@ public class FollowService {
         List<Course> courses = courseCustomRepository.findAllByWriter(courseId, followInfoMember);
         boolean finalPage = courses.size() - 1 != -1 && courseCustomRepository.findAllByWriter(
                 courses.get(courses.size() - 1).getCourseId(),
-                member).isEmpty();
+                followInfoMember).isEmpty();
         followInfoResponseDto.setRecentCourses(courses.stream()
                 .map(recent -> HomeResponseDto.of(
                         recent,
