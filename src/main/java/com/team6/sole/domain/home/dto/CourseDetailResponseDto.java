@@ -2,6 +2,7 @@ package com.team6.sole.domain.home.dto;
 
 import com.team6.sole.domain.follow.model.FollowStatus;
 import com.team6.sole.domain.home.entity.Course;
+import com.team6.sole.domain.home.entity.Gps;
 import com.team6.sole.domain.member.dto.MemberResponseDto;
 import com.team6.sole.domain.member.entity.Member;
 import lombok.*;
@@ -13,6 +14,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.team6.sole.domain.home.HomeService.makeShortenAddress;
+import static com.team6.sole.infra.direction.DirectionService.calculateDistance;
 
 @Getter
 @Setter
@@ -50,11 +52,14 @@ public class CourseDetailResponseDto {
 
     private List<PlaceResponseDto> placeResponseDtos = new ArrayList<>();
 
+    private List<Double> durationList = new ArrayList<>();
+
     @Builder
     public CourseDetailResponseDto(Long courseId, MemberResponseDto writer, boolean checkWriter, int follower, int following,
                                    FollowStatus followStatus, String title, String thumbnailUrl, int scrapCount, String description,
                                    String startDate, String address, int duration, double distance,
-                                   Set<?> categories, List<PlaceResponseDto> placeResponseDtos) {
+                                   Set<?> categories, List<PlaceResponseDto> placeResponseDtos,
+                                   List<Double> durationList) {
         this.courseId = courseId;
         this.writer = writer;
         this.checkWriter = checkWriter;
@@ -71,6 +76,7 @@ public class CourseDetailResponseDto {
         this.distance = distance;
         this.categories = categories;
         this.placeResponseDtos = placeResponseDtos;
+        this.durationList = durationList;
     }
 
     public static CourseDetailResponseDto of(Course course, boolean checkWriter, FollowStatus followStatus) {
@@ -78,6 +84,19 @@ public class CourseDetailResponseDto {
         mergedSet.addAll(course.getPlaceCategories());
         mergedSet.addAll(course.getTransCategories());
         mergedSet.addAll(course.getWithCategories());
+
+        List<Double> durationList = new ArrayList<>();
+
+        for (int i = 0; i < course.getPlaces().size(); i++) {
+            if (i == course.getPlaces().size() - 1) {
+                break;
+            }
+            Gps start = course.getPlaces().get(i).getGps();
+            Gps end = course.getPlaces().get(i + 1).getGps();
+            durationList.add(calculateDistance(start.getLatitude(), start.getLongitude(),
+                    end.getLatitude(), end.getLongitude()));
+        }
+
         return CourseDetailResponseDto.builder()
                 .courseId(course.getCourseId())
                 .writer(MemberResponseDto.of(course.getWriter()))
@@ -97,6 +116,7 @@ public class CourseDetailResponseDto {
                 .placeResponseDtos(course.getPlaces().stream()
                         .map(PlaceResponseDto::of)
                         .collect(Collectors.toList()))
+                .durationList(durationList)
                 .build();
     }
 }
