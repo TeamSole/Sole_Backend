@@ -51,12 +51,6 @@ public class HistoryService {
         Member member = memberRepository.findBySocialId(socialId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
-        // 내가 기록한 코스 findAll
-        List<Course> courses = courseCustomRepository.findAllByWriter(courseId, member);
-        boolean finalPage = courses.size() - 1 != -1 && courseCustomRepository.findAllByWriter(
-                courses.get(courses.size() - 1).getCourseId(),
-                member).isEmpty();
-
         // 내가 기록한 코스 중 검색 조건에 맞는 코스만 필터링
         if (historySearchRequestDto != null) {
             List<Course> filterCourses = courseCustomRepository.findAllByCatgegoryAndWriter(
@@ -79,6 +73,12 @@ public class HistoryService {
                             searchFinalPage))
                     .collect(Collectors.toList());
         }
+
+        // 내가 기록한 코스 findAll
+        List<Course> courses = courseCustomRepository.findAllByWriter(courseId, member);
+        boolean finalPage = courses.size() - 1 != -1 && courseCustomRepository.findAllByWriter(
+                courses.get(courses.size() - 1).getCourseId(),
+                member).isEmpty();
 
         return courses.stream()
                 .map(course -> HomeResponseDto.of(
