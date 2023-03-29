@@ -151,8 +151,8 @@ public class MemberService {
                 .currentGps(
                         Gps.builder()
                                 .address("서울 마포구 마포대로 122")
-                                .longitude(126.952499) // 경도(x)
-                                .latitude(37.5453021) // 위도(y)
+                                .latitude(37.5453021) // 위도(x)
+                                .longitude(126.952499) // 경도(y)
                                 .distance(0)
                                 .build()
                 )
@@ -207,9 +207,7 @@ public class MemberService {
     
     // fcmToken 교체
     @Transactional
-    public String modFcmToken(String socialId, FcmTokenDto fcmTokenDto) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+    public String modFcmToken(Member member, FcmTokenDto fcmTokenDto) {
         member.setFcmToken(fcmTokenDto.getFcmToken());
 
         return "fcmToken 교체 성공";
@@ -217,10 +215,7 @@ public class MemberService {
 
     // 로그아웃(fcmToken 삭제)
     @Transactional
-    public String logout(String socialId) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-
+    public String logout(Member member) {
         /*//이미 로그아웃 된 상태
         if (StringUtils.isBlank(member.getFcmToken())) {
             throw new BadRequestException(ErrorCode.USER_ALREADY_LOGGED_OUT);

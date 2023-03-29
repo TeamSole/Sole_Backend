@@ -37,7 +37,7 @@ public class Course extends BaseTimeEntity {
 
     private int duration;
 
-    private int distance;
+    private double distance;
 
     @ElementCollection(fetch = FetchType.LAZY) @Enumerated(EnumType.STRING)
     Set<PlaceCategory> placeCategories;
@@ -60,6 +60,9 @@ public class Course extends BaseTimeEntity {
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<CourseMember> courseMembers = new ArrayList<>();
 
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Declaration> declarations = new ArrayList<>();
+
     public void putPlace(Place place) {
         this.getPlaces().add(place);
     }
@@ -72,7 +75,7 @@ public class Course extends BaseTimeEntity {
         this.scrapCount--;
     }
 
-    public void modCourse(String title, Date startDate, int duration,
+    public void modCourse(String title, Date startDate, int duration, double distance,
                           Set<PlaceCategory> placeCategories,
                           Set<WithCategory> withCategories,
                           Set<TransCategory> transCategories,
@@ -80,6 +83,7 @@ public class Course extends BaseTimeEntity {
         this.title = title;
         this.startDate = startDate;
         this.duration = duration;
+        this.distance = distance;
         this.placeCategories = placeCategories;
         this.withCategories = withCategories;
         this.transCategories = transCategories;
@@ -93,9 +97,10 @@ public class Course extends BaseTimeEntity {
     @Builder
     public Course(Long courseId, String thumbnailUrl, int scrapCount,
                   String title, String description, Date startDate,
-                  int duration, int distance,
+                  int duration, double distance,
                   Set<PlaceCategory> placeCategories, Set<WithCategory> withCategories, Set<TransCategory> transCategories,
-                  Member writer, Member member, List<Place> places, List<CourseMember> courseMembers) {
+                  Member writer, Member member, List<Place> places, List<CourseMember> courseMembers,
+                  List<Declaration> declarations) {
         this.courseId = courseId;
         this.thumbnailUrl = thumbnailUrl;
         this.scrapCount = scrapCount;
@@ -111,5 +116,6 @@ public class Course extends BaseTimeEntity {
         this.member = member;
         this.places = places;
         this.courseMembers = courseMembers;
+        this.declarations = declarations;
     }
 }

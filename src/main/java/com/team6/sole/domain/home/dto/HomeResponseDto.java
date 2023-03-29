@@ -1,5 +1,6 @@
 package com.team6.sole.domain.home.dto;
 
+import com.team6.sole.domain.home.HomeService;
 import com.team6.sole.domain.home.entity.Course;
 import lombok.*;
 
@@ -22,7 +23,7 @@ public class HomeResponseDto {
 
     private int duration;
 
-    private int distance;
+    private double distance;
 
     private Set<?> categories = new HashSet<>();
 
@@ -30,7 +31,7 @@ public class HomeResponseDto {
 
     @Builder
     public HomeResponseDto(Long courseId, String thumbnailImg, String title,
-                           boolean isLike, String address, int duration, int distance,
+                           boolean isLike, String address, int duration, double distance,
                            Set<?> categories, boolean finalPage) {
         this.courseId = courseId;
         this.thumbnailImg = thumbnailImg;
@@ -54,7 +55,7 @@ public class HomeResponseDto {
                 .thumbnailImg(course.getThumbnailUrl())
                 .title(course.getTitle())
                 .isLike(isLike)
-                .address(course.getPlaces().get(0).getGps().getAddress())
+                .address(HomeService.makeShortenAddress(course.getPlaces().get(0).getGps().getAddress()))
                 .duration(course.getDuration())
                 .distance(course.getDistance())
                 .categories(mergedSet)

@@ -12,30 +12,43 @@ import java.util.List;
 public class PlaceResponseDto {
     private Long placeId;
 
+    private int duration;
+
     private String placeName;
 
     private String description;
 
     private String address;
 
+    private double latitude;
+
+    private double longitude;
+
     private List<String> placeImgUrls = new ArrayList<>();
 
     @Builder
-    public PlaceResponseDto(Long placeId, String placeName, String description,
-                            String address, List<String> placeImgUrls) {
+    public PlaceResponseDto(Long placeId, int duration, String placeName, String description,
+                            String address, List<String> placeImgUrls,
+                            double latitude, double longitude) {
         this.placeId = placeId;
+        this.duration = duration;
         this.placeName = placeName;
         this.description = description;
         this.address = address;
+        this.latitude = latitude;
+        this.longitude = longitude;
         this.placeImgUrls = placeImgUrls;
     }
 
     public static PlaceResponseDto of(Place place) {
         return PlaceResponseDto.builder()
                 .placeId(place.getPlaceId())
+                .duration(place.getDuration())
                 .placeName(place.getPlaceName())
                 .description(place.getDescription())
                 .address(place.getGps().getAddress())
+                .latitude(place.getGps().getLatitude())
+                .longitude(place.getGps().getLongitude())
                 .placeImgUrls(place.getPlaceImgUrls())
                 .build();
     }

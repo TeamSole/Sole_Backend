@@ -1,14 +1,15 @@
 package com.team6.sole.domain.member;
 
 import com.team6.sole.domain.member.dto.*;
+import com.team6.sole.domain.member.entity.Member;
 import com.team6.sole.global.config.CommonApiResponse;
 import com.team6.sole.global.config.redis.RedisService;
 import com.team6.sole.global.config.security.dto.TokenResponseDto;
+import com.team6.sole.global.config.security.jwt.annotation.LoginUser;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import springfox.documentation.annotations.ApiIgnore;
@@ -41,16 +42,16 @@ public class MemberApiController {
     @PatchMapping("fcmToken")
     @ApiOperation(value = "fcmToken 교체")
     public ResponseEntity<CommonApiResponse<String>> modFcmToken(
-            @ApiIgnore Authentication authentication,
+            @ApiIgnore @LoginUser Member member,
             @RequestBody FcmTokenDto fcmTokenDto) {
-        return ResponseEntity.ok(CommonApiResponse.of(memberService.modFcmToken(authentication.getName(), fcmTokenDto)));
+        return ResponseEntity.ok(CommonApiResponse.of(memberService.modFcmToken(member, fcmTokenDto)));
     }
 
     @PatchMapping("logout")
     @ApiOperation(value = "로그아웃(fcmToken 삭제)")
     public ResponseEntity<CommonApiResponse<String>> logout(
-            @ApiIgnore Authentication authentication) {
-        return ResponseEntity.ok(CommonApiResponse.of(memberService.logout(authentication.getName())));
+            @ApiIgnore @LoginUser Member member) {
+        return ResponseEntity.ok(CommonApiResponse.of(memberService.logout(member)));
     }
 
     @PostMapping("reissue")
@@ -67,10 +68,10 @@ public class MemberApiController {
         return ResponseEntity.ok(memberService.duplicateNickname(duplicateNickname.getNickname()));
     }
 
-    @PostMapping("test")
+    @GetMapping("test")
     @ApiIgnore
-    public ResponseEntity<String> test(@RequestPart MemberRequestDto memberRequestDto) {
-        return ResponseEntity.ok(memberRequestDto.getNickname());
+    public ResponseEntity<String> test(@ApiIgnore @LoginUser Member member) {
+        return ResponseEntity.ok(member.getNickname());
     }
 
     @PostMapping("testLogin")

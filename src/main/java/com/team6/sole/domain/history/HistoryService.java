@@ -11,8 +11,6 @@ import com.team6.sole.domain.home.model.TransCategory;
 import com.team6.sole.domain.home.repository.CourseCustomRepository;
 import com.team6.sole.domain.member.MemberRepository;
 import com.team6.sole.domain.member.entity.Member;
-import com.team6.sole.global.error.ErrorCode;
-import com.team6.sole.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,9 +26,7 @@ public class HistoryService {
 
     // 나의 기록 보기(상단)
     @Transactional(readOnly = true)
-    public HistoryResponseDto showMyHistory(String socialId) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+    public HistoryResponseDto showMyHistory(Member member) {
         List<PlaceCategory> placeCategories = new ArrayList<>();
         List<TransCategory> transCategories = new ArrayList<>();
         for (Course course : member.getCourses()) {
@@ -47,13 +43,7 @@ public class HistoryService {
 
     // 나의 기록 보기(하단)(5개 + 5n)
     @Transactional(readOnly = true)
-    public List<HomeResponseDto> showMyCourseHistories(String socialId, Long courseId, HistorySearchRequestDto historySearchRequestDto) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-
-        // 내가 기록한 코스 findAll
-        List<Course> courses = courseCustomRepository.findAllByWriter(courseId, member);
-
+    public List<HomeResponseDto> showMyCourseHistories(Member member, Long courseId, HistorySearchRequestDto historySearchRequestDto) {
         // 내가 기록한 코스 중 검색 조건에 맞는 코스만 필터링
         if (historySearchRequestDto != null) {
             List<Course> filterCourses = courseCustomRepository.findAllByCatgegoryAndWriter(
@@ -62,32 +52,41 @@ public class HistoryService {
                     historySearchRequestDto.getPlaceCategories(),
                     historySearchRequestDto.getWithCategories(),
                     historySearchRequestDto.getTransCategories());
+            boolean searchFinalPage = filterCourses.size() - 1 != -1 && courseCustomRepository.findAllByCatgegoryAndWriter(
+                    filterCourses.get(filterCourses.size() - 1).getCourseId(),
+                    member,
+                    historySearchRequestDto.getPlaceCategories(),
+                    historySearchRequestDto.getWithCategories(),
+                    historySearchRequestDto.getTransCategories()).isEmpty();
 
             return filterCourses.stream()
                     .map(course -> HomeResponseDto.of(
                             course,
                             true,
-                            courseCustomRepository.findAllByCatgegoryAndWriter(
-                                    filterCourses.get(filterCourses.size() - 1).getCourseId(),
-                                    member,
-                                    historySearchRequestDto.getPlaceCategories(),
-                                    historySearchRequestDto.getWithCategories(),
-                                    historySearchRequestDto.getTransCategories()).isEmpty()))
+                            searchFinalPage))
                     .collect(Collectors.toList());
         }
+
+        // 내가 기록한 코스 findAll
+        List<Course> courses = courseCustomRepository.findAllByWriter(courseId, member);
+        boolean finalPage = courses.size() - 1 != -1 && courseCustomRepository.findAllByWriter(
+                courses.get(courses.size() - 1).getCourseId(),
+                member).isEmpty();
 
         return courses.stream()
                 .map(course -> HomeResponseDto.of(
                         course,
                         true,
-                        courseCustomRepository.findAllByWriter(
-                                courses.get(courses.size() - 1).getCourseId(),
-                                member).isEmpty()))
+                        finalPage))
                 .collect(Collectors.toList());
     }
 
     // 장소 최빈값
     public String makeMostRegion(List<Course> courses) {
+        if (courses.isEmpty()) {
+            return null;
+        }
+
         List<String> regions = courses.stream()
                 .map(course -> course.getPlaces().get(0))
                 .map(Place::getGps)
@@ -116,6 +115,10 @@ public class HistoryService {
 
     // 장소 카테고리 mapToSet
     public Set<PlaceCategory> makeMostPlaceCategories(List<PlaceCategory> placeCategories) {
+        if (placeCategories.isEmpty()) {
+            return Collections.emptySet();
+        }
+
         HashMap<PlaceCategory, Integer> dic = new HashMap<>();
         for (PlaceCategory placeCategory : placeCategories) {
             int x = 1;
@@ -138,6 +141,10 @@ public class HistoryService {
 
     // 대중교통 카테고리 mapToSet
     public Set<TransCategory> makeMostTransCategories(List<TransCategory> transCategories) {
+        if (transCategories.isEmpty()) {
+            return Collections.emptySet();
+        }
+
         HashMap<TransCategory, Integer> dic = new HashMap<>();
         for (TransCategory transCategory : transCategories) {
             int x = 1;

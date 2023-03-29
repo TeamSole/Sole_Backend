@@ -14,7 +14,6 @@ import com.team6.sole.infra.notification.model.NotificationType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -34,10 +33,7 @@ public class NoticeService {
 
     // 공지사항 등록
     @Transactional
-    public NoticeResponseDto makeNotice(String socialId, NoticeRequestDto noticeRequestDto) {
-        Member writer = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-
+    public NoticeResponseDto makeNotice(Member writer, NoticeRequestDto noticeRequestDto) {
         Notice notice = Notice.builder()
                 .title(noticeRequestDto.getTitle())
                 .content(noticeRequestDto.getContent())
@@ -92,10 +88,7 @@ public class NoticeService {
 
     // 알림 테스트
     @Transactional
-    public String test(String socialId) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-
+    public String test(Member member) {
         notificationService.createNotification(member, "테스트", "테스트", NotificationType.MARKETING);
 
         return "알림 테스트 성공...!";

@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public class DirectionService {
     private final CourseRepository courseRepository;
     private static final int MAX_SEARCH_COUNT = 7; // 최대 검색 갯수
-    private static final double RADIUS_KM = 10.0; // 반경 10 km
+    private static final double RADIUS_KM = 20.0; // 반경 10 km
 
     // 추천 코스(현재 위치 기준으로 가장 가깝고, 스크랩수가 가장 많으며, 7개)
     @Transactional(readOnly = true)
@@ -33,7 +33,7 @@ public class DirectionService {
     }
 
     // Haversine formula
-    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    public static double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
         lat1 = Math.toRadians(lat1);
         lon1 = Math.toRadians(lon1);
         lat2 = Math.toRadians(lat2);

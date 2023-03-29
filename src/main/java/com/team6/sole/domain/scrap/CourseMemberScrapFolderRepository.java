@@ -2,6 +2,7 @@ package com.team6.sole.domain.scrap;
 
 import com.team6.sole.domain.home.entity.relation.CourseMember;
 import com.team6.sole.domain.scrap.entity.CourseMemberScrapFolder;
+import com.team6.sole.domain.scrap.entity.ScrapFolder;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -10,4 +11,6 @@ public interface CourseMemberScrapFolderRepository extends JpaRepository<CourseM
     void deleteByCourseMemberAndScrapFolder_ScrapFolderId(CourseMember courseMember, Long scrapFolderId);
 
     List<CourseMemberScrapFolder> findAllByScrapFolder_ScrapFolderId(Long scrapFolderId);
+
+    boolean existsByScrapFolderAndCourseMember(ScrapFolder scrapFolder, CourseMember courseMember);
 }

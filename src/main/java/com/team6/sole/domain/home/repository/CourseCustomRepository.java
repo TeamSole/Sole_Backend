@@ -43,7 +43,7 @@ public class CourseCustomRepository {
                 .where(ltCourseId(courseId), // 동적 쿼리
                         (QCourse.course.title.like("%" + title + "%")))
                 .orderBy(QCourse.course.courseId.desc())
-                .limit(10)
+                .limit(5)
                 .fetch();
     }
 
@@ -52,8 +52,8 @@ public class CourseCustomRepository {
                 .selectFrom(QCourse.course)
                 .where(ltCourseId(courseId), // 동적 쿼리 // 동적 쿼리
                         (QCourse.course.writer.eq(writer)))
-                .orderBy(QCourse.course.createdAt.desc())
-                .limit(10)
+                .orderBy(QCourse.course.courseId.desc())
+                .limit(5)
                 .fetch();
     }
 
