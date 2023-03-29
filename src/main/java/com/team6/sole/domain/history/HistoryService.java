@@ -11,8 +11,6 @@ import com.team6.sole.domain.home.model.TransCategory;
 import com.team6.sole.domain.home.repository.CourseCustomRepository;
 import com.team6.sole.domain.member.MemberRepository;
 import com.team6.sole.domain.member.entity.Member;
-import com.team6.sole.global.error.ErrorCode;
-import com.team6.sole.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,9 +26,7 @@ public class HistoryService {
 
     // 나의 기록 보기(상단)
     @Transactional(readOnly = true)
-    public HistoryResponseDto showMyHistory(String socialId) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+    public HistoryResponseDto showMyHistory(Member member) {
         List<PlaceCategory> placeCategories = new ArrayList<>();
         List<TransCategory> transCategories = new ArrayList<>();
         for (Course course : member.getCourses()) {
@@ -47,10 +43,7 @@ public class HistoryService {
 
     // 나의 기록 보기(하단)(5개 + 5n)
     @Transactional(readOnly = true)
-    public List<HomeResponseDto> showMyCourseHistories(String socialId, Long courseId, HistorySearchRequestDto historySearchRequestDto) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-
+    public List<HomeResponseDto> showMyCourseHistories(Member member, Long courseId, HistorySearchRequestDto historySearchRequestDto) {
         // 내가 기록한 코스 중 검색 조건에 맞는 코스만 필터링
         if (historySearchRequestDto != null) {
             List<Course> filterCourses = courseCustomRepository.findAllByCatgegoryAndWriter(

@@ -40,8 +40,8 @@ public class FollowService {
     
     // 팔로잉하는 사람들 작성한 코스 보기
     @Transactional(readOnly = true)
-    public List<FollowDetailResponseDto> showFollowingCourses(String socialId) {
-        List<Member> followings = followRepository.findByFromMember_SocialId(socialId).stream()
+    public List<FollowDetailResponseDto> showFollowingCourses(Member member) {
+        List<Member> followings = followRepository.findByFromMember_SocialId(member.getSocialId()).stream()
                 .map(Follow::getToMember)
                 .collect(Collectors.toList());
 
@@ -51,8 +51,7 @@ public class FollowService {
                 .map(course -> FollowDetailResponseDto.of(
                         course.getWriter(),
                         courseMemberRepository.existsByMemberAndCourse_CourseId(
-                                memberRepository.findBySocialId(socialId)
-                                        .orElseThrow(() -> new BadRequestException(ErrorCode.MEMBER_NOT_FOUND)),
+                                member,
                                 course.getCourseId()
                         ),
                         course))
@@ -61,8 +60,8 @@ public class FollowService {
 
     // 팔로잉 보기
     @Transactional(readOnly = true)
-    public List<FollowResponseDto> showFollowings(String socialId) {
-        List<Follow> followings = followRepository.findByFromMember_SocialId(socialId);
+    public List<FollowResponseDto> showFollowings(Member member) {
+        List<Follow> followings = followRepository.findByFromMember_SocialId(member.getSocialId());
 
         return followings.stream()
                 .map(FollowResponseDto::ofFollowing)
@@ -71,23 +70,20 @@ public class FollowService {
 
     // 팔로워 보기
     @Transactional(readOnly = true)
-    public List<FollowResponseDto> showFollowers(String socialId) {
-        List<Follow> followers = followRepository.findByToMember_SocialId(socialId);
+    public List<FollowResponseDto> showFollowers(Member member) {
+        List<Follow> followers = followRepository.findByToMember_SocialId(member.getSocialId());
 
         return followers.stream()
                 .map(follower -> FollowResponseDto.ofFollower(
                         follower,
-                        followRepository.existsByFromMember_SocialIdAndToMember_SocialId(follower.getFromMember().getSocialId(), socialId)
+                        followRepository.existsByFromMember_SocialIdAndToMember_SocialId(follower.getFromMember().getSocialId(), member.getSocialId())
                 ? FollowStatus.FOLLOWING : FollowStatus.NOT_FOLLOW))
                 .collect(Collectors.toList());
     }
 
     // 팔로잉 상세정보
     @Transactional(readOnly = true)
-    public FollowInfoResponseDto showFollowInfo(String socialId, String followInfoId, Long courseId) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new BadRequestException(ErrorCode.MEMBER_NOT_FOUND));
-
+    public FollowInfoResponseDto showFollowInfo(Member member, String followInfoId, Long courseId) {
         Member followInfoMember = memberRepository.findBySocialId(followInfoId)
                 .orElseThrow(() -> new BadRequestException(ErrorCode.MEMBER_NOT_FOUND));
 
@@ -124,11 +120,7 @@ public class FollowService {
 
     // 팔로우 및 언팔로우
     @Transactional
-    public String toFollow(String socialId, Long toMemberId) {
-        // 수신자
-        Member fromMember = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new BadRequestException(ErrorCode.MEMBER_NOT_FOUND));
-
+    public String toFollow(Member fromMember, Long toMemberId) {
         // 발신자
         Member toMember = memberRepository.findById(toMemberId)
                 .orElseThrow(() -> new BadRequestException(ErrorCode.MEMBER_NOT_FOUND));

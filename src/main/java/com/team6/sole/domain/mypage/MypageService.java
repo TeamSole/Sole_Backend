@@ -27,19 +27,13 @@ public class MypageService {
 
     // 마이페이지 조회(홈 포함)
     @Transactional(readOnly = true)
-    public MypageResponseDto showMypage(String socialId) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new BadRequestException(ErrorCode.MEMBER_NOT_FOUND));
-        
+    public MypageResponseDto showMypage(Member member) {
         return MypageResponseDto.of(member);
     }
     
     // 마이페이지 수정
     @Transactional
-    public MypageResponseDto modMypage(String socialId, MultipartFile multipartFile, MypageRequestDto mypageRequestDto) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new BadRequestException(ErrorCode.MEMBER_NOT_FOUND));
-
+    public MypageResponseDto modMypage(Member member, MultipartFile multipartFile, MypageRequestDto mypageRequestDto) {
         member.modMypage(
                 multipartFile == null
                         ? member.getProfileImgUrl()
@@ -53,19 +47,13 @@ public class MypageService {
 
     // 알림 설정 조회
     @Transactional(readOnly = true)
-    public NotSettingReseponseDto showNotSetting(String socialId) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-
+    public NotSettingReseponseDto showNotSetting(Member member) {
         return NotSettingReseponseDto.of(member);
     }
     
     // 알림 설정
     @Transactional
-    public NotSettingReseponseDto modNotSetting(String socialId, NotSettingRequestDto notSettingRequestDto) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-
+    public NotSettingReseponseDto modNotSetting(Member member, NotSettingRequestDto notSettingRequestDto) {
         member.modNotSetting(notSettingRequestDto.isActivityNot(),
                 notSettingRequestDto.isMarketingNot());
 
@@ -74,10 +62,7 @@ public class MypageService {
     
     // 알림 히스토리 조회
     @Transactional(readOnly = true)
-    public List<NotHistoryResponseDto> showNotHistories(String socialId) {
-        Member receiver = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-
+    public List<NotHistoryResponseDto> showNotHistories(Member receiver) {
         List<Notification> notifications = notificationRepository
                 .findAllByReceiver(receiver, Sort.by(Sort.Direction.DESC, "createdAt"));
 
@@ -88,10 +73,7 @@ public class MypageService {
     
     // 탈퇴
     @Transactional
-    public String delMember(String socialId) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new BadRequestException(ErrorCode.MEMBER_NOT_FOUND));
-
+    public String delMember(Member member) {
         memberRepository.deleteByMemberId(member.getMemberId());
 
         return "탈퇴가 완료되었습니다...!";
