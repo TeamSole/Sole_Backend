@@ -51,10 +51,7 @@ public class HomeService {
     
     // 현재 위치 설정
     @Transactional
-    public GpsResponseDto setCurrentGps(String socialId, GpsReqeustDto gpsRequestDto) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-
+    public GpsResponseDto setCurrentGps(Member member, GpsReqeustDto gpsRequestDto) {
         String address = convertAdress(gpsRequestDto.getLatitude(), gpsRequestDto.getLongitude());
         int idx = address.indexOf("국");
 
@@ -70,18 +67,13 @@ public class HomeService {
 
     // 현재 위치 보기
     @Transactional(readOnly = true)
-    public String showCurrentGps(String socialId) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-
+    public String showCurrentGps(Member member) {
         return makeShortenAddress(member.getCurrentGps().getAddress());
     }
     
     // 인기 코스 보기 테스트
     @Transactional(readOnly = true)
-    public List<RecommendCourseResponseDto> showRecommendTest(String socialId) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+    public List<RecommendCourseResponseDto> showRecommendTest(Member member) {
         List<Course> recommendCourses = directionService.buildCourses(member.getCurrentGps());
 
         return recommendCourses.stream()
@@ -92,10 +84,7 @@ public class HomeService {
     // 인기 코스 추천(7개 fix)
     @Transactional(readOnly = true)
     @Cacheable(value = "recommends")
-    public List<RecommendCourseResponseDto> showRecommendCourses(String socialId) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-
+    public List<RecommendCourseResponseDto> showRecommendCourses(Member member) {
         return member.getRecommendCourses().stream()
                 .map(RecommendCourseResponseDto::of)
                 .collect(Collectors.toList());
@@ -103,10 +92,7 @@ public class HomeService {
 
     // 홈 보기(5개 + 5n)
     @Transactional(readOnly = true)
-    public List<HomeResponseDto> showHomes(String socialId, Long courseId) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-
+    public List<HomeResponseDto> showHomes(Member member, Long courseId) {
         if (member.getFavoriteCategory().getTransCategories().isEmpty()
                 && member.getFavoriteCategory().getPlaceCategories().isEmpty()
                 && member.getFavoriteCategory().getWithCategories().isEmpty()) {
@@ -137,10 +123,7 @@ public class HomeService {
 
     // 홈 검색(10개 + 10n)
     @Transactional(readOnly = true)
-    public List<HomeResponseDto> searchHomes(String socialId, Long courseId, String searchWord) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-
+    public List<HomeResponseDto> searchHomes(Member member, Long courseId, String searchWord) {
         // 검색어로 코스 찾기
         List<Course> searchCourses = courseCustomRepository.findAllByTitleContaining(courseId, searchWord);
         boolean finalPage = searchCourses.size() - 1 != -1 && courseCustomRepository.findAllByTitleContaining(
@@ -162,10 +145,8 @@ public class HomeService {
     // 코스 등록
     @SneakyThrows
     @Transactional
-    public CourseResponseDto makeCourse(String socialId, CourseRequestDto courseRequestDto,
+    public CourseResponseDto makeCourse(Member writer, CourseRequestDto courseRequestDto,
                                         Map<String, List<MultipartFile>> courseImagesMap) {
-        Member writer = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
         log.info(String.valueOf(courseImagesMap.size()));
 
@@ -236,11 +217,9 @@ public class HomeService {
     
     // 코스 상세 조회
     @Transactional(readOnly = true)
-    public CourseDetailResponseDto showCourseDetail(Long courseId, String socialId) {
+    public CourseDetailResponseDto showCourseDetail(Long courseId, Member member) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.COURSE_NOT_FOUND));
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         boolean checkWriter = course.getWriter().getMemberId().equals(member.getMemberId());
 
@@ -357,16 +336,14 @@ public class HomeService {
     // 코스 스크랩 및 취소
     @Async("home")
     @Transactional
-    public synchronized void scrapCourse(String socialId, Long courseId) {
-        Optional<CourseMember> checkCourseMember = courseMemberRepository.findByMember_SocialIdAndCourse_CourseId(socialId, courseId);
+    public synchronized void scrapCourse(Member member, Long courseId) {
+        Optional<CourseMember> checkCourseMember = courseMemberRepository.findByMember_SocialIdAndCourse_CourseId(member.getSocialId(), courseId);
 
         if (checkCourseMember.isPresent()) {
-            courseMemberRepository.deleteByMember_SocialIdAndCourse_CourseId(socialId, courseId);
+            courseMemberRepository.deleteByMember_SocialIdAndCourse_CourseId(member.getSocialId(), courseId);
             checkCourseMember.get().getCourse().removeScrapCount();
             courseRepository.saveAndFlush(checkCourseMember.get().getCourse());
         } else {
-            Member member = memberRepository.findBySocialId(socialId)
-                    .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
             Course course = courseRepository.findById(courseId)
                     .orElseThrow(() -> new NotFoundException(ErrorCode.COURSE_NOT_FOUND));
 
@@ -383,9 +360,7 @@ public class HomeService {
     
     // 코스 신고하기
     @Transactional
-    public String declareCourse(String socialId, Long courseId) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+    public String declareCourse(Member member, Long courseId) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.COURSE_NOT_FOUND));
 
@@ -400,19 +375,13 @@ public class HomeService {
 
     // 선호 카테고리 보기
     @Transactional(readOnly = true)
-    public FavCategoryResponseDto showFavCategory(String socialId) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-
+    public FavCategoryResponseDto showFavCategory(Member member) {
         return FavCategoryResponseDto.of(member);
     }
 
     // 선호 카테고리 수정
     @Transactional
-    public FavCategoryResponseDto modFavCategory(String socialId, FavCategoryRequestDto favCategoryRequestDto) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-
+    public FavCategoryResponseDto modFavCategory(Member member, FavCategoryRequestDto favCategoryRequestDto) {
         member.modFavCategory(Category.builder()
                 .placeCategories(favCategoryRequestDto.getPlaceCategories())
                 .withCategories(favCategoryRequestDto.getWithCategories())

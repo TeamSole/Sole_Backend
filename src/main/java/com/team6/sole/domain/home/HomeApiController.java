@@ -1,7 +1,9 @@
 package com.team6.sole.domain.home;
 
 import com.team6.sole.domain.home.dto.*;
+import com.team6.sole.domain.member.entity.Member;
 import com.team6.sole.global.config.CommonApiResponse;
+import com.team6.sole.global.config.security.jwt.annotation.LoginUser;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -25,46 +27,46 @@ public class HomeApiController {
     @GetMapping("currentGps")
     @ApiOperation(value = "현재 위치 주소 조회")
     public ResponseEntity<CommonApiResponse<String>> getCurrentGps(
-            @ApiIgnore Authentication authentication) {
-        return ResponseEntity.ok(CommonApiResponse.of(homeService.showCurrentGps(authentication.getName())));
+            @ApiIgnore @LoginUser Member member) {
+        return ResponseEntity.ok(CommonApiResponse.of(homeService.showCurrentGps(member)));
     }
 
     @PatchMapping("currentGps")
     @ApiOperation(value = "현재 위치 변경")
     public ResponseEntity<CommonApiResponse<GpsResponseDto>> setCurrentGps(
-            @ApiIgnore Authentication authentication,
+            @ApiIgnore @LoginUser Member member,
             @RequestBody GpsReqeustDto gpsRequestDto) {
-        return ResponseEntity.ok(CommonApiResponse.of(homeService.setCurrentGps(authentication.getName(), gpsRequestDto)));
+        return ResponseEntity.ok(CommonApiResponse.of(homeService.setCurrentGps(member, gpsRequestDto)));
     }
     
     @GetMapping
     @ApiOperation(value = "홈 보기")
     public ResponseEntity<CommonApiResponse<List<HomeResponseDto>>> showHomes(
-            @ApiIgnore Authentication authentication,
+            @ApiIgnore @LoginUser Member member,
             @RequestParam(required = false) Long courseId,
             @RequestParam(required = false) String searchWord) {
         if (searchWord != null) {
-            return ResponseEntity.ok(CommonApiResponse.of(homeService.searchHomes(authentication.getName(), courseId, searchWord)));
+            return ResponseEntity.ok(CommonApiResponse.of(homeService.searchHomes(member, courseId, searchWord)));
         }
-        return ResponseEntity.ok(CommonApiResponse.of(homeService.showHomes(authentication.getName(), courseId)));
+        return ResponseEntity.ok(CommonApiResponse.of(homeService.showHomes(member, courseId)));
     }
 
     @PostMapping
     @ApiOperation(value = "코스 등록")
     public ResponseEntity<CommonApiResponse<CourseResponseDto>> makeCourse(
-            @ApiIgnore Authentication authentication,
+            @ApiIgnore @LoginUser Member member,
             @RequestPart CourseRequestDto courseRequestDto,
             MultipartHttpServletRequest multipartHttpServletRequest) {
         Map<String, List<MultipartFile>> courseImagesMap = multipartHttpServletRequest.getMultiFileMap();
-        return ResponseEntity.ok(CommonApiResponse.of(homeService.makeCourse(authentication.getName(), courseRequestDto, courseImagesMap)));
+        return ResponseEntity.ok(CommonApiResponse.of(homeService.makeCourse(member, courseRequestDto, courseImagesMap)));
     }
 
     @GetMapping("{courseId}")
     @ApiOperation(value = "코스 상세보기")
     public ResponseEntity<CommonApiResponse<CourseDetailResponseDto>> showCourseDetail(
-            @ApiIgnore Authentication authentication,
+            @ApiIgnore @LoginUser Member member,
             @PathVariable Long courseId) {
-        return ResponseEntity.ok(CommonApiResponse.of(homeService.showCourseDetail(courseId, authentication.getName())));
+        return ResponseEntity.ok(CommonApiResponse.of(homeService.showCourseDetail(courseId, member)));
     }
 
     @PutMapping("{courseId}")
@@ -88,47 +90,47 @@ public class HomeApiController {
     @GetMapping("recommendTest")
     @ApiOperation(value = "추천 코스 보기테스트")
     public ResponseEntity<CommonApiResponse<List<RecommendCourseResponseDto>>> showRecommendTest(
-            @ApiIgnore Authentication authentication) {
-        return ResponseEntity.ok(CommonApiResponse.of(homeService.showRecommendTest(authentication.getName())));
+            @ApiIgnore @LoginUser Member member) {
+        return ResponseEntity.ok(CommonApiResponse.of(homeService.showRecommendTest(member)));
     }
 
     @GetMapping("recommend")
     @ApiOperation(value = "추천 코스 보기")
     public ResponseEntity<CommonApiResponse<List<RecommendCourseResponseDto>>> showRecommendCourse(
-            @ApiIgnore Authentication authentication) {
-        return ResponseEntity.ok(CommonApiResponse.of(homeService.showRecommendCourses(authentication.getName())));
+            @ApiIgnore @LoginUser Member member) {
+        return ResponseEntity.ok(CommonApiResponse.of(homeService.showRecommendCourses(member)));
     }
 
     @PostMapping("{courseId}/scrap")
     @ApiOperation(value = "코스 스크랩 및 취소")
     public ResponseEntity<Void> scrapCourse(
-            @ApiIgnore Authentication authentication,
+            @ApiIgnore @LoginUser Member member,
             @PathVariable Long courseId) {
-        homeService.scrapCourse(authentication.getName(), courseId);
+        homeService.scrapCourse(member, courseId);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("{courseId}/declare")
     @ApiOperation(value = "코스 신고")
     public ResponseEntity<CommonApiResponse<String>> declareCourse(
-            @ApiIgnore Authentication authentication,
+            @ApiIgnore @LoginUser Member member,
             @PathVariable Long courseId) {
-        return ResponseEntity.ok(CommonApiResponse.of(homeService.declareCourse(authentication.getName(), courseId)));
+        return ResponseEntity.ok(CommonApiResponse.of(homeService.declareCourse(member, courseId)));
     }
 
     @GetMapping("favCategory")
     @ApiOperation(value = "선호 카테고리 보기")
     public ResponseEntity<CommonApiResponse<FavCategoryResponseDto>> showFavCategory(
-            @ApiIgnore Authentication authentication) {
-        return ResponseEntity.ok(CommonApiResponse.of(homeService.showFavCategory(authentication.getName())));
+            @ApiIgnore @LoginUser Member member) {
+        return ResponseEntity.ok(CommonApiResponse.of(homeService.showFavCategory(member)));
     }
 
     @PatchMapping("favCategory")
     @ApiOperation(value = "선호 카테고리 수정")
     public ResponseEntity<CommonApiResponse<FavCategoryResponseDto>> modFavCategory(
-            @ApiIgnore Authentication authentication,
+            @ApiIgnore @LoginUser Member member,
             @RequestBody FavCategoryRequestDto favCategoryRequestDto) {
-        return ResponseEntity.ok(CommonApiResponse.of(homeService.modFavCategory(authentication.getName(), favCategoryRequestDto)));
+        return ResponseEntity.ok(CommonApiResponse.of(homeService.modFavCategory(member, favCategoryRequestDto)));
     }
 
     @PostMapping("/imageTest")

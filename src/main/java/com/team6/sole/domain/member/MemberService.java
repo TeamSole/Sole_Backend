@@ -207,9 +207,7 @@ public class MemberService {
     
     // fcmToken 교체
     @Transactional
-    public String modFcmToken(String socialId, FcmTokenDto fcmTokenDto) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+    public String modFcmToken(Member member, FcmTokenDto fcmTokenDto) {
         member.setFcmToken(fcmTokenDto.getFcmToken());
 
         return "fcmToken 교체 성공";
@@ -217,10 +215,7 @@ public class MemberService {
 
     // 로그아웃(fcmToken 삭제)
     @Transactional
-    public String logout(String socialId) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-
+    public String logout(Member member) {
         /*//이미 로그아웃 된 상태
         if (StringUtils.isBlank(member.getFcmToken())) {
             throw new BadRequestException(ErrorCode.USER_ALREADY_LOGGED_OUT);
