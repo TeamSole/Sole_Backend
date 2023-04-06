@@ -399,6 +399,7 @@ public class HomeService {
         return "성공";
     }
 
+    // 지역명 필터링
     public static String makeShortenAddress(String address) {
         String[] addressArr = address.split(" ");
         String shortenAddress = "";

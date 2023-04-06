@@ -88,7 +88,8 @@ public class AppleUtils {
                 .parseClaimsJws(identityToken)
                 .getBody();
     }
-    
+
+    // 애플에서 공개키 받기
     public ApplePublicKeyResponse getApplePublicKey() {
         String getAppleURL = "https://appleid.apple.com/auth/keys";
 
