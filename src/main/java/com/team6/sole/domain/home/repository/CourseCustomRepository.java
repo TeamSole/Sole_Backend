@@ -50,7 +50,7 @@ public class CourseCustomRepository {
     public List<Course> findAllByWriter(Long courseId, Member writer) {
         return jpaQueryFactory
                 .selectFrom(QCourse.course)
-                .where(ltCourseId(courseId), // 동적 쿼리 // 동적 쿼리
+                .where(ltCourseId(courseId), // 동적 쿼리
                         (QCourse.course.writer.eq(writer)))
                 .orderBy(QCourse.course.courseId.desc())
                 .limit(5)
@@ -65,7 +65,7 @@ public class CourseCustomRepository {
                                            Set<TransCategory> transCategories) {
         return jpaQueryFactory
                 .selectFrom(QCourse.course)
-                .where(ltCourseId(courseId), // 동적 쿼리 // 동적 쿼리
+                .where(ltCourseId(courseId), // 동적 쿼리
                         (QCourse.course.placeCategories.any().in(placeCategories))
                         .or(QCourse.course.withCategories.any().in(withCategories))
                         .or(QCourse.course.transCategories.any().in(transCategories))

@@ -1,0 +1,15 @@
+version: "3.7"
+services:
+  backend:
+    image: rkdwlals/teamsole:latest
+    container_name: backend
+    network_mode: "host"
+
+  nginx:
+    depends_on:
+      - backend
+    network_mode: "host"
+    restart: always
+    build:
+      dockerfile: Dockerfile
+      context: ./.platform/nginx
