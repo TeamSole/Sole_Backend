@@ -71,7 +71,7 @@ jobs:
         run: |
           mkdir -p deploy
           cp -r .ebextensions deploy/.ebextensions
-          cp -r .platform deploy/.platform
+#          cp -r .platform deploy/.platform
           cp docker-compose.yml deploy/docker-compose.yml
           cd deploy && zip -r deploy.zip .
 #        run: |
