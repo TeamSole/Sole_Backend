@@ -1,7 +1,7 @@
 version: "3.7"
 services:
   backend:
-    image: 375296822047.dkr.ecr.ap-northeast-2.amazonaws.com/teamsole/teamsole:latest
+    image: 375296822047.dkr.ecr.ap-northeast-2.amazonaws.com/teamsole:latest
     container_name: backend
     network_mode: "host"
 
