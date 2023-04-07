@@ -6,11 +6,11 @@ services:
     container_name: backend
     network_mode: "host"
 
-  nginx:
-    depends_on:
-      - backend
-    network_mode: "host"
-    restart: always
-    build:
-      context: Dockerfile
-      dockerfile: ./nginx
+#  nginx:
+#    depends_on:
+#      - backend
+#    network_mode: "host"
+#    restart: always
+#    build:
+#      context: Dockerfile
+#      dockerfile: ./nginx
