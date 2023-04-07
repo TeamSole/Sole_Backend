@@ -4,6 +4,11 @@ services:
 #    image: rkdwlals/teamsole:latest
     image: 375296822047.dkr.ecr.ap-northeast-2.amazonaws.com/teamsole:latest
     container_name: backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:5000"
     network_mode: "host"
 
 #  nginx:
