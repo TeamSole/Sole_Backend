@@ -12,5 +12,5 @@ services:
     network_mode: "host"
     restart: always
     build:
-      dockerfile: Dockerfile
-      context: .
+      context: Dockerfile
+      dockerfile: ./nginx
