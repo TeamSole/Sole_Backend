@@ -1,5 +1,6 @@
 package com.team6.sole.domain.home.dto;
 
+import com.team6.sole.domain.home.HomeService;
 import com.team6.sole.domain.home.entity.Course;
 import lombok.*;
 
@@ -22,14 +23,16 @@ public class HomeResponseDto {
 
     private int duration;
 
-    private int distance;
+    private double distance;
 
     private Set<?> categories = new HashSet<>();
 
+    private boolean finalPage;
+
     @Builder
     public HomeResponseDto(Long courseId, String thumbnailImg, String title,
-                           boolean isLike, String address, int duration, int distance,
-                           Set<?> categories) {
+                           boolean isLike, String address, int duration, double distance,
+                           Set<?> categories, boolean finalPage) {
         this.courseId = courseId;
         this.thumbnailImg = thumbnailImg;
         this.title = title;
@@ -38,9 +41,10 @@ public class HomeResponseDto {
         this.duration = duration;
         this.distance = distance;
         this.categories = categories;
+        this.finalPage = finalPage;
     }
 
-    public static HomeResponseDto of(Course course, boolean isLike) {
+    public static HomeResponseDto of(Course course, boolean isLike, boolean finalPage) {
         Set<Object> mergedSet = new HashSet<>();
         mergedSet.addAll(course.getPlaceCategories());
         mergedSet.addAll(course.getWithCategories());
@@ -51,10 +55,11 @@ public class HomeResponseDto {
                 .thumbnailImg(course.getThumbnailUrl())
                 .title(course.getTitle())
                 .isLike(isLike)
-                .address(course.getPlaces().get(0).getGps().getAddress())
+                .address(HomeService.makeShortenAddress(course.getPlaces().get(0).getGps().getAddress()))
                 .duration(course.getDuration())
                 .distance(course.getDistance())
                 .categories(mergedSet)
+                .finalPage(finalPage)
                 .build();
     }
 }

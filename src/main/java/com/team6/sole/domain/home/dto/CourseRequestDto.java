@@ -25,12 +25,6 @@ public class CourseRequestDto {
     @ApiModelProperty(value = "간 날짜", example = "2023-03-02")
     private String date;
 
-    @ApiModelProperty(value = "걸린시간", example = "30분")
-    private int duration;
-
-    @ApiModelProperty(value = "거리", example = "80km")
-    private int distance;
-
     @ApiModelProperty(value = "장소 카테고리")
     private Set<PlaceCategory> placeCategories;
 

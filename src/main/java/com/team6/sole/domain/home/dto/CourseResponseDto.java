@@ -29,7 +29,7 @@ public class CourseResponseDto {
 
     private int duration;
 
-    private int distance;
+    private double distance;
 
     private Set<?> categories = new HashSet<>();
 
@@ -40,7 +40,7 @@ public class CourseResponseDto {
     @Builder
     public CourseResponseDto(Long courseId, String title, int scrapCount,
                              String description, String startDate,
-                             int duration, int distance,
+                             int duration, double distance,
                              Set<?> categories, List<PlaceResponseDto> placeResponseDtos,
                              MemberResponseDto writer) {
         this.courseId = courseId;
@@ -61,7 +61,7 @@ public class CourseResponseDto {
         mergedSet.addAll(course.getWithCategories());
         mergedSet.addAll(course.getTransCategories());
 
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 
         return CourseResponseDto.builder()
                 .courseId(course.getCourseId())

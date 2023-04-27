@@ -1,8 +1,11 @@
 package com.team6.sole.domain.home.dto;
 
+import com.team6.sole.domain.home.HomeService;
 import com.team6.sole.domain.home.entity.Gps;
 import com.team6.sole.domain.member.entity.Member;
 import lombok.*;
+
+import static com.team6.sole.domain.home.HomeService.makeShortenAddress;
 
 @Getter
 @Setter
@@ -25,7 +28,11 @@ public class GpsResponseDto {
         return GpsResponseDto.builder()
                 .memberId(member.getMemberId())
                 .nickname(member.getNickname())
-                .currentGps(member.getCurrentGps())
+                .currentGps(Gps.builder()
+                        .address(makeShortenAddress(member.getCurrentGps().getAddress()))
+                        .latitude(member.getCurrentGps().getLatitude())
+                        .longitude(member.getCurrentGps().getLongitude())
+                        .build())
                 .build();
     }
 }

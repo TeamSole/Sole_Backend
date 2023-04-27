@@ -1,6 +1,7 @@
 package com.team6.sole.domain.member;
 
 import com.team6.sole.domain.home.entity.Category;
+import com.team6.sole.domain.home.entity.Gps;
 import com.team6.sole.domain.member.dto.*;
 import com.team6.sole.domain.member.entity.Accept;
 import com.team6.sole.domain.member.entity.FollowInfo;
@@ -11,6 +12,7 @@ import com.team6.sole.domain.member.model.Social;
 import com.team6.sole.domain.scrap.ScrapFolderRespository;
 import com.team6.sole.domain.scrap.entity.ScrapFolder;
 import com.team6.sole.global.config.CommonApiResponse;
+import com.team6.sole.global.config.redis.RedisService;
 import com.team6.sole.global.config.s3.AwsS3ServiceImpl;
 import com.team6.sole.global.config.security.dto.TokenResponseDto;
 import com.team6.sole.global.config.security.jwt.TokenProvider;
@@ -47,6 +49,7 @@ public class MemberService {
     private final TokenProvider tokenProvider;
     private final WebClient webClient;
     private final AppleUtils appleUtils;
+    private final RedisService redisService;
 
     // 회원체크 및 로그인(소셜)
     @SneakyThrows // 명시적 예외처리(lombok)
@@ -77,7 +80,7 @@ public class MemberService {
 
             log.info("로그인 성공");
 
-            return new ResponseEntity<>(CommonApiResponse.of(MemberResponseDto.of(checkMember.get(), tokenResponseDTO)), httpHeaders, HttpStatus.OK);
+            return new ResponseEntity<>(CommonApiResponse.of(MemberResponseDto.ofCheck(checkMember.get(), true, tokenResponseDTO)), httpHeaders, HttpStatus.OK);
         } else {
             return ResponseEntity.ok(CommonApiResponse.of(MemberResponseDto.ofSignUp(false)));
         }
@@ -87,6 +90,10 @@ public class MemberService {
     @SneakyThrows // 명시적 예외처리(lombok)
     @Transactional
     public ResponseEntity<CommonApiResponse<MemberResponseDto>> makeMember(String provider, MultipartFile multipartFile, MemberRequestDto memberRequestDto) {
+        if (memberRepository.existsByNickname(memberRequestDto.getNickname())) {
+            throw new BadRequestException(ErrorCode.MEMBER_ALREADY_EXIST);
+        }
+
         String socialId = "";
         Social social = null;
 
@@ -104,6 +111,7 @@ public class MemberService {
                 .serviceAccepted(memberRequestDto.isServiceAccepted())
                 .infoAccepted(memberRequestDto.isInfoAccepted())
                 .marketingAccepted(memberRequestDto.isMarketingAccepted())
+                .locationAccepted(memberRequestDto.isLocationAccepted())
                 .build();
         acceptRepository.save(accept);
 
@@ -144,6 +152,14 @@ public class MemberService {
                         memberRequestDto.getFcmToken() == null
                                 ? null
                                 : memberRequestDto.getFcmToken())
+                .currentGps(
+                        Gps.builder()
+                                .address("서울 마포구 마포대로 122")
+                                .latitude(37.5453021) // 위도(x)
+                                .longitude(126.952499) // 경도(y)
+                                .distance(0)
+                                .build()
+                )
                 .build();
         memberRepository.saveAndFlush(member);
         
@@ -171,8 +187,11 @@ public class MemberService {
             throw new BadRequestException(ErrorCode.INVALID_ACCESS_TOKEN);
         }
 
+
         try {
             socialId = tokenProvider.parseClaims(accessToken).getSubject();
+            log.info(refreshToken);
+            log.info(redisService.getValues(socialId));
         } catch (Exception e) {
             throw new BadRequestException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
@@ -192,9 +211,7 @@ public class MemberService {
     
     // fcmToken 교체
     @Transactional
-    public String modFcmToken(String socialId, FcmTokenDto fcmTokenDto) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+    public String modFcmToken(Member member, FcmTokenDto fcmTokenDto) {
         member.setFcmToken(fcmTokenDto.getFcmToken());
 
         return "fcmToken 교체 성공";
@@ -202,14 +219,11 @@ public class MemberService {
 
     // 로그아웃(fcmToken 삭제)
     @Transactional
-    public String logout(String socialId) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-
-        //이미 로그아웃 된 상태
+    public String logout(Member member) {
+        /*//이미 로그아웃 된 상태
         if (StringUtils.isBlank(member.getFcmToken())) {
             throw new BadRequestException(ErrorCode.USER_ALREADY_LOGGED_OUT);
-        }
+        }*/
 
         //redis 에서 registerToken 삭제
         tokenProvider.deleteRegisterToken(member.getSocialId());
@@ -227,8 +241,8 @@ public class MemberService {
 
     // 테스트 로그인
     @Transactional
-    public ResponseEntity<CommonApiResponse<MemberResponseDto>> checkMember() {
-        Member checkMember = memberRepository.findBySocialIdAndSocial("jimin1126@hanmail.net", Social.KAKAO)
+    public ResponseEntity<CommonApiResponse<MemberResponseDto>> checkMember(Long memberId) {
+        Member checkMember = memberRepository.findById(memberId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         HttpHeaders httpHeaders = new HttpHeaders();
@@ -238,6 +252,13 @@ public class MemberService {
         log.info("로그인 성공");
 
         return new ResponseEntity<>(CommonApiResponse.of(MemberResponseDto.of(checkMember, tokenResponseDTO)), httpHeaders, HttpStatus.OK);
+    }
+
+    // 회원 삭제(중복 가입 방지용)
+    @Transactional
+    public String delMember(Long memberId) {
+        memberRepository.deleteByMemberId(memberId);
+        return "삭제 성공!";
     }
 
     // 카카오 유저 정보 가져오기

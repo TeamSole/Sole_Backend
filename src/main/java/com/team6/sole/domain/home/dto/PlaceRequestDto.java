@@ -13,6 +13,9 @@ public class PlaceRequestDto {
     @ApiModelProperty(value = "장소이름", example = "짜장면집")
     private String placeName;
 
+    @ApiModelProperty(value = "소요시간", example = "80")
+    private int duration;
+
     @ApiModelProperty(value = "장소설명", example = "중식집")
     private String description;
 

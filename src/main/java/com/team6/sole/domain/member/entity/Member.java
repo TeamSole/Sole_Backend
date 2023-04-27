@@ -3,12 +3,14 @@ package com.team6.sole.domain.member.entity;
 import com.team6.sole.domain.follow.entity.Follow;
 import com.team6.sole.domain.home.entity.Category;
 import com.team6.sole.domain.home.entity.Course;
+import com.team6.sole.domain.home.entity.Declaration;
 import com.team6.sole.domain.home.entity.Gps;
 import com.team6.sole.domain.home.entity.relation.CourseMember;
 import com.team6.sole.domain.member.model.Role;
 import com.team6.sole.domain.member.model.Social;
 import com.team6.sole.domain.notice.entity.Notice;
 import com.team6.sole.domain.scrap.entity.ScrapFolder;
+import com.team6.sole.global.config.entity.BaseTimeEntity;
 import com.team6.sole.infra.notification.entity.Notification;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -22,7 +24,7 @@ import java.util.List;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Member {
+public class Member extends BaseTimeEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long memberId;
 
@@ -83,6 +85,9 @@ public class Member {
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ScrapFolder> scrapFolders = new ArrayList<>();
 
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Declaration> declarations = new ArrayList<>();
+
     public void modMypage(String profileImgUrl, String nickname, String description) {
         this.profileImgUrl = profileImgUrl;
         this.nickname = nickname;
@@ -117,7 +122,8 @@ public class Member {
                   FollowInfo followInfo, NotificationInfo notificationInfo, Category favoriteCategory, Gps currentGps,
                   Accept accept, List<Course> courses, List<Course> recommendCourses, List<CourseMember> courseMembers,
                   List<Follow> fromFollows, List<Follow> toFollows,
-                  List<Notice> notices, List<Notification> notifications, List<ScrapFolder> scrapFolders) {
+                  List<Notice> notices, List<Notification> notifications,
+                  List<ScrapFolder> scrapFolders, List<Declaration> declarations) {
         this.memberId = memberId;
         this.socialId = socialId;
         this.password = password;
@@ -140,5 +146,6 @@ public class Member {
         this.notices = notices;
         this.notifications = notifications;
         this.scrapFolders = scrapFolders;
+        this.declarations = declarations;
     }
 }
