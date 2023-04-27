@@ -90,6 +90,10 @@ public class MemberService {
     @SneakyThrows // 명시적 예외처리(lombok)
     @Transactional
     public ResponseEntity<CommonApiResponse<MemberResponseDto>> makeMember(String provider, MultipartFile multipartFile, MemberRequestDto memberRequestDto) {
+        if (memberRepository.existsByNickname(memberRequestDto.getNickname())) {
+            throw new BadRequestException(ErrorCode.MEMBER_ALREADY_EXIST);
+        }
+
         String socialId = "";
         Social social = null;
 
@@ -237,8 +241,8 @@ public class MemberService {
 
     // 테스트 로그인
     @Transactional
-    public ResponseEntity<CommonApiResponse<MemberResponseDto>> checkMember() {
-        Member checkMember = memberRepository.findBySocialIdAndSocial("jimin1126@hanmail.net", Social.KAKAO)
+    public ResponseEntity<CommonApiResponse<MemberResponseDto>> checkMember(Long memberId) {
+        Member checkMember = memberRepository.findById(memberId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         HttpHeaders httpHeaders = new HttpHeaders();
@@ -248,6 +252,13 @@ public class MemberService {
         log.info("로그인 성공");
 
         return new ResponseEntity<>(CommonApiResponse.of(MemberResponseDto.of(checkMember, tokenResponseDTO)), httpHeaders, HttpStatus.OK);
+    }
+
+    // 회원 삭제(중복 가입 방지용)
+    @Transactional
+    public String delMember(Long memberId) {
+        memberRepository.deleteByMemberId(memberId);
+        return "삭제 성공!";
     }
 
     // 카카오 유저 정보 가져오기

@@ -75,8 +75,13 @@ public class MemberApiController {
     }
 
     @PostMapping("testLogin")
-    public ResponseEntity<CommonApiResponse<MemberResponseDto>> checkMember() {
-        return memberService.checkMember();
+    public ResponseEntity<CommonApiResponse<MemberResponseDto>> checkMember(Long memberId) {
+        return memberService.checkMember(memberId);
+    }
+
+    @DeleteMapping("testDelete")
+    public ResponseEntity<String> deleteMember(Long memberId) {
+        return ResponseEntity.ok(memberService.delMember(memberId));
     }
 
     @GetMapping("getRefreshToken")
