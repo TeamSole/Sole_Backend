@@ -1,5 +1,7 @@
 package com.team6.sole.domain.member;
 
+import com.team6.sole.domain.home.entity.Category;
+import com.team6.sole.domain.home.entity.Gps;
 import com.team6.sole.domain.member.dto.*;
 import com.team6.sole.domain.member.entity.Accept;
 import com.team6.sole.domain.member.entity.FollowInfo;
@@ -7,7 +9,10 @@ import com.team6.sole.domain.member.entity.Member;
 import com.team6.sole.domain.member.entity.NotificationInfo;
 import com.team6.sole.domain.member.model.Role;
 import com.team6.sole.domain.member.model.Social;
+import com.team6.sole.domain.scrap.ScrapFolderRespository;
+import com.team6.sole.domain.scrap.entity.ScrapFolder;
 import com.team6.sole.global.config.CommonApiResponse;
+import com.team6.sole.global.config.redis.RedisService;
 import com.team6.sole.global.config.s3.AwsS3ServiceImpl;
 import com.team6.sole.global.config.security.dto.TokenResponseDto;
 import com.team6.sole.global.config.security.jwt.TokenProvider;
@@ -29,12 +34,14 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class MemberService {
+    private final ScrapFolderRespository scrapFolderRespository;
     private final MemberRepository memberRepository;
     private final AcceptRepository acceptRepository;
     private final AwsS3ServiceImpl awsS3Service;
@@ -42,6 +49,7 @@ public class MemberService {
     private final TokenProvider tokenProvider;
     private final WebClient webClient;
     private final AppleUtils appleUtils;
+    private final RedisService redisService;
 
     // 회원체크 및 로그인(소셜)
     @SneakyThrows // 명시적 예외처리(lombok)
@@ -72,7 +80,7 @@ public class MemberService {
 
             log.info("로그인 성공");
 
-            return new ResponseEntity<>(CommonApiResponse.of(MemberResponseDto.of(checkMember.get(), tokenResponseDTO)), httpHeaders, HttpStatus.OK);
+            return new ResponseEntity<>(CommonApiResponse.of(MemberResponseDto.ofCheck(checkMember.get(), true, tokenResponseDTO)), httpHeaders, HttpStatus.OK);
         } else {
             return ResponseEntity.ok(CommonApiResponse.of(MemberResponseDto.ofSignUp(false)));
         }
@@ -99,6 +107,7 @@ public class MemberService {
                 .serviceAccepted(memberRequestDto.isServiceAccepted())
                 .infoAccepted(memberRequestDto.isInfoAccepted())
                 .marketingAccepted(memberRequestDto.isMarketingAccepted())
+                .locationAccepted(memberRequestDto.isLocationAccepted())
                 .build();
         acceptRepository.save(accept);
 
@@ -113,6 +122,13 @@ public class MemberService {
                                 ? null
                                 : awsS3Service.uploadImage(multipartFile, "member"))
                 .accept(accept)
+                .favoriteCategory(
+                        Category.builder()
+                                .placeCategories(memberRequestDto.getPlaceCategories())
+                                .withCategories(memberRequestDto.getWithCategories())
+                                .transCategories(memberRequestDto.getTransCategories())
+                                .build()
+                )
                 .description(null)
                 .followInfo(
                         FollowInfo.builder()
@@ -132,8 +148,22 @@ public class MemberService {
                         memberRequestDto.getFcmToken() == null
                                 ? null
                                 : memberRequestDto.getFcmToken())
+                .currentGps(
+                        Gps.builder()
+                                .address("서울 마포구 마포대로 122")
+                                .latitude(37.5453021) // 위도(x)
+                                .longitude(126.952499) // 경도(y)
+                                .distance(0)
+                                .build()
+                )
                 .build();
-        memberRepository.save(member);
+        memberRepository.saveAndFlush(member);
+        
+        ScrapFolder scrapFolder = ScrapFolder.builder()
+                .scrapFolderName("기본 폴더")
+                .member(member)
+                .build();
+        scrapFolderRespository.saveAndFlush(scrapFolder);
 
         HttpHeaders httpHeaders = new HttpHeaders();
         TokenResponseDto tokenResponseDTO = tokenProvider.generateToken(socialId, member.getRole().name());
@@ -153,8 +183,11 @@ public class MemberService {
             throw new BadRequestException(ErrorCode.INVALID_ACCESS_TOKEN);
         }
 
+
         try {
             socialId = tokenProvider.parseClaims(accessToken).getSubject();
+            log.info(refreshToken);
+            log.info(redisService.getValues(socialId));
         } catch (Exception e) {
             throw new BadRequestException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
@@ -174,9 +207,7 @@ public class MemberService {
     
     // fcmToken 교체
     @Transactional
-    public String modFcmToken(String socialId, FcmTokenDto fcmTokenDto) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
+    public String modFcmToken(Member member, FcmTokenDto fcmTokenDto) {
         member.setFcmToken(fcmTokenDto.getFcmToken());
 
         return "fcmToken 교체 성공";
@@ -184,14 +215,11 @@ public class MemberService {
 
     // 로그아웃(fcmToken 삭제)
     @Transactional
-    public String logout(String socialId) {
-        Member member = memberRepository.findBySocialId(socialId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
-
-        //이미 로그아웃 된 상태
+    public String logout(Member member) {
+        /*//이미 로그아웃 된 상태
         if (StringUtils.isBlank(member.getFcmToken())) {
             throw new BadRequestException(ErrorCode.USER_ALREADY_LOGGED_OUT);
-        }
+        }*/
 
         //redis 에서 registerToken 삭제
         tokenProvider.deleteRegisterToken(member.getSocialId());

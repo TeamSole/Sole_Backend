@@ -38,7 +38,7 @@ public class TokenProvider implements InitializingBean {
     private final Logger logger = LoggerFactory.getLogger(TokenProvider.class);
 
     /** 토큰 유효 시간 (ms) */
-    private static final long JWT_EXPIRATION_MS = 1000L * 60 * 40; //40분
+    private static final long JWT_EXPIRATION_MS = 1000L * 60 * 60 * 24; // 1일
     private static final long REFRESH_TOKEN_EXPIRATION_MS = 1000L * 60 * 60 * 24 * 7; //7일
     private static final String AUTHORITIES_KEY = "auth";
 

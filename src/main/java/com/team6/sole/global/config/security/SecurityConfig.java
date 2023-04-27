@@ -83,6 +83,9 @@ public class SecurityConfig {
                 .antMatchers("/api/notices/**").authenticated()
                 .antMatchers("/api/follows/**").authenticated()
                 .antMatchers("/api/mypage/**").authenticated()
+                .antMatchers("/api/histories/**").authenticated()
+                .antMatchers("/api/scraps/**").authenticated()
+                .antMatchers("/api/courses/**").authenticated()
 
                 .anyRequest().permitAll()
 

@@ -1,14 +1,15 @@
 package com.team6.sole.domain.notice;
 
+import com.team6.sole.domain.member.entity.Member;
 import com.team6.sole.domain.notice.dto.NoticeRequestDto;
 import com.team6.sole.domain.notice.dto.NoticeResponseDto;
 import com.team6.sole.global.config.CommonApiResponse;
+import com.team6.sole.global.config.security.jwt.annotation.LoginUser;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import springfox.documentation.annotations.ApiIgnore;
 
@@ -19,15 +20,15 @@ import java.util.List;
 @Api(tags = "공지사항")
 @RequestMapping("api/notices")
 public class NoticeApiController {
-    private NoticeService noticeService;
+    private final NoticeService noticeService;
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     @ApiOperation(value = "공지사항 등록")
     public ResponseEntity<CommonApiResponse<NoticeResponseDto>> makeNotice(
-            @ApiIgnore Authentication authentication,
+            @ApiIgnore @LoginUser Member member,
             @RequestBody NoticeRequestDto noticeRequestDto) {
-        return ResponseEntity.ok(CommonApiResponse.of(noticeService.makeNotice(authentication.getName(), noticeRequestDto)));
+        return ResponseEntity.ok(CommonApiResponse.of(noticeService.makeNotice(member, noticeRequestDto)));
     }
 
     @GetMapping
@@ -50,5 +51,11 @@ public class NoticeApiController {
             @PathVariable Long noticeId,
             @RequestBody NoticeRequestDto noticeRequestDto) {
         return ResponseEntity.ok(CommonApiResponse.of(noticeService.modNotice(noticeId, noticeRequestDto)));
+    }
+
+    @GetMapping("test")
+    public ResponseEntity<CommonApiResponse<String>> test(
+            @ApiIgnore @LoginUser Member member) {
+        return ResponseEntity.ok(CommonApiResponse.of(noticeService.test(member)));
     }
 }

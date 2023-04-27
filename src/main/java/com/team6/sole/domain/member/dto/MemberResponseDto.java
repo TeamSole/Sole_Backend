@@ -7,11 +7,13 @@ import com.team6.sole.domain.member.model.Social;
 import com.team6.sole.global.config.security.dto.TokenResponseDto;
 import lombok.*;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 /*@JsonInclude(JsonInclude.Include.NON_NULL) //NULL 필드 가림*/
-public class MemberResponseDto {
+public class MemberResponseDto implements Serializable {
     private Long memberId;
 
     private String socialId;
@@ -53,6 +55,20 @@ public class MemberResponseDto {
                 .profileImgUrl(member.getProfileImgUrl())
                 .social(member.getSocial())
                 .role(member.getRole())
+                .build();
+    }
+
+    public static MemberResponseDto ofCheck(Member member, boolean check, TokenResponseDto tokenResponseDto) {
+        return MemberResponseDto.builder()
+                .memberId(member.getMemberId())
+                .socialId(member.getSocialId())
+                .nickname(member.getNickname())
+                .profileImgUrl(member.getProfileImgUrl())
+                .social(member.getSocial())
+                .role(member.getRole())
+                .accessToken(tokenResponseDto.getAccessToken())
+                .refreshToken(tokenResponseDto.getRefreshToken())
+                .check(check)
                 .build();
     }
 

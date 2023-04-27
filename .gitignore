@@ -38,7 +38,10 @@ out/
 
 # dotoenv
 /src/main/resources/application.yml
+/src/main/resources/application-dev.yml
 /src/main/resources/sole.json
 
 src/test/java/com/team6/sole/SsolBackendApplicationTests.java
 /src/main/resources/AuthKey_8N7FLJNRMM.p8
+
+src/main/resources/logback-spring.xml
