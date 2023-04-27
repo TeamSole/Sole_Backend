@@ -19,7 +19,6 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class RecommendCourseScheduler {
-    private final CourseRepository courseRepository;
     private final MemberRepository memberRepository;
     private final DirectionService directionService;
 
