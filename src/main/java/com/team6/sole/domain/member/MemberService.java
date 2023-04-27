@@ -90,6 +90,10 @@ public class MemberService {
     @SneakyThrows // 명시적 예외처리(lombok)
     @Transactional
     public ResponseEntity<CommonApiResponse<MemberResponseDto>> makeMember(String provider, MultipartFile multipartFile, MemberRequestDto memberRequestDto) {
+        if (memberRepository.existsByNickname(memberRequestDto.getNickname())) {
+            throw new BadRequestException(ErrorCode.MEMBER_ALREADY_EXIST);
+        }
+
         String socialId = "";
         Social social = null;
 

@@ -50,6 +50,4 @@ public class MemberRequestDto {
 
     @ApiModelProperty(value = "fcm 토큰")
     private String fcmToken;
-
-
 }
