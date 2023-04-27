@@ -40,7 +40,6 @@ public class HomeService {
     private final CourseRepository courseRepository;
     private final CourseCustomRepository courseCustomRepository;
     private final PlaceRepository placeRepository;
-    private final MemberRepository memberRepository;
     private final DeclarationRepository declarationRepository;
     private final AwsS3ServiceImpl awsS3Service;
     private final WebClient webClient;
@@ -83,7 +82,7 @@ public class HomeService {
 
     // 인기 코스 추천(7개 fix)
     @Transactional(readOnly = true)
-    @Cacheable(value = "recommends")
+    @Cacheable(value = "recommends", key = "#member.memberId")
     public List<RecommendCourseResponseDto> showRecommendCourses(Member member) {
         return member.getRecommendCourses().stream()
                 .map(RecommendCourseResponseDto::of)
@@ -440,13 +439,11 @@ public class HomeService {
         try {
             return Objects.requireNonNull(webClient
                             .get()
-                            .uri(getAdressURL, builder -> {
-                                return builder
-                                        .queryParam("latlng", latitude + "," + longitude)
-                                        .queryParam("language", "ko")
-                                        .queryParam("key", APP_KEY)
-                                        .build();
-                            })
+                            .uri(getAdressURL, builder -> builder
+                                    .queryParam("latlng", latitude + "," + longitude)
+                                    .queryParam("language", "ko")
+                                    .queryParam("key", APP_KEY)
+                                    .build())
                             .retrieve()
                             .bodyToMono(GeocodeResponseDto.class)
                             .block()).getResults()[0].getFormatted_address();
