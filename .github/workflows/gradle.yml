@@ -60,7 +60,7 @@ jobs:
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: earth-demo
+          ECR_REPOSITORY: teamsole
           IMAGE_TAG: latest
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
@@ -71,8 +71,7 @@ jobs:
         run: |
           mkdir -p deploy
           cp -r .ebextensions deploy/.ebextensions
-          cp -r .platform deploy/.platform
-          cp docker-compose.yml deploy/docker-compose.yml
+          cp Dockerrun.aws.json deploy/Dockerrun.aws.json
           cd deploy && zip -r deploy.zip .
 #        run: |
 #          mkdir -p deploy

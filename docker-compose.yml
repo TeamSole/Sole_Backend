@@ -1,15 +1,21 @@
 version: "3.7"
 services:
   backend:
-    image: rkdwlals/teamsole:latest
+#    image: rkdwlals/teamsole:latest
+    image: 375296822047.dkr.ecr.ap-northeast-2.amazonaws.com/teamsole:latest
     container_name: backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:5000"
     network_mode: "host"
 
-  nginx:
-    depends_on:
-      - backend
-    network_mode: "host"
-    restart: always
-    build:
-      dockerfile: Dockerfile
-      context: ./.platform/nginx
+#  nginx:
+#    depends_on:
+#      - backend
+#    network_mode: "host"
+#    restart: always
+#    build:
+#      context: Dockerfile
+#      dockerfile: ./nginx
