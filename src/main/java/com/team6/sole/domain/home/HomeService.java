@@ -6,8 +6,9 @@ import com.team6.sole.domain.home.dto.*;
 import com.team6.sole.domain.home.entity.*;
 import com.team6.sole.domain.home.entity.relation.CourseMember;
 import com.team6.sole.domain.home.repository.*;
-import com.team6.sole.domain.member.MemberRepository;
 import com.team6.sole.domain.member.entity.Member;
+import com.team6.sole.domain.scrap.ScrapFolderRespository;
+import com.team6.sole.domain.scrap.entity.ScrapFolder;
 import com.team6.sole.global.config.s3.AwsS3ServiceImpl;
 import com.team6.sole.global.error.ErrorCode;
 import com.team6.sole.global.error.exception.BadRequestException;
@@ -35,6 +36,7 @@ import static com.team6.sole.infra.direction.DirectionService.calculateDistance;
 @Slf4j
 @RequiredArgsConstructor
 public class HomeService {
+    private final ScrapFolderRespository scrapFolderRespository;
     private final CourseMemberRepository courseMemberRepository;
     private final FollowRepository followRepository;
     private final CourseRepository courseRepository;
@@ -331,29 +333,33 @@ public class HomeService {
                 .orElseThrow(() -> new NotFoundException(ErrorCode.COURSE_NOT_FOUND));
         courseRepository.delete(course);
     }
-    
+
     // 코스 스크랩 및 취소
     @Async("home")
     @Transactional
-    public synchronized void scrapCourse(Member member, Long courseId) {
-        Optional<CourseMember> checkCourseMember = courseMemberRepository.findByMember_SocialIdAndCourse_CourseId(member.getSocialId(), courseId);
+    public synchronized void scrapCourse(Member member, Long courseId, Long scrapFolderId) {
+        // Optional로 이미 스크랩되어있는지 확인
+        Optional<CourseMember> checkCourseMember =
+                courseMemberRepository.findByCourse_CourseIdAndMemberAndScrapFolder_ScrapFolderId(courseId, member, scrapFolderId);
 
+        // 이미 스크랩되어있다면 취소, 아니면 스크랩
         if (checkCourseMember.isPresent()) {
-            courseMemberRepository.deleteByMember_SocialIdAndCourse_CourseId(member.getSocialId(), courseId);
+            courseMemberRepository.deleteByCourse_CourseIdAndMemberAndScrapFolder_ScrapFolderId(courseId, member, scrapFolderId);
             checkCourseMember.get().getCourse().removeScrapCount();
-            courseRepository.saveAndFlush(checkCourseMember.get().getCourse());
         } else {
-            Course course = courseRepository.findById(courseId)
-                    .orElseThrow(() -> new NotFoundException(ErrorCode.COURSE_NOT_FOUND));
+            ScrapFolder scrapFolder = scrapFolderRespository.findById(scrapFolderId)
+                    .orElseThrow(() -> new NotFoundException(ErrorCode.SCRAP_FOLDER_NOT_FOUND));
 
             CourseMember courseMember = CourseMember.builder()
+                    .course(courseRepository.findById(courseId)
+                            .orElseThrow(() -> new NotFoundException(ErrorCode.COURSE_NOT_FOUND)))
                     .member(member)
-                    .course(course)
+                    .scrapFolder(scrapFolder)
                     .build();
             courseMemberRepository.saveAndFlush(courseMember);
 
-            course.addScrapCount();
-            courseRepository.saveAndFlush(course);
+            courseMember.getCourse().addScrapCount();
+            courseRepository.saveAndFlush(courseMember.getCourse());
         }
     }
     

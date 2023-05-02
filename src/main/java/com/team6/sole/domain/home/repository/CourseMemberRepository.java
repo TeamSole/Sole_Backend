@@ -4,9 +4,6 @@ import com.team6.sole.domain.home.entity.Course;
 import com.team6.sole.domain.home.entity.relation.CourseMember;
 import com.team6.sole.domain.member.entity.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,15 +11,13 @@ import java.util.Optional;
 public interface CourseMemberRepository extends JpaRepository<CourseMember, Long> {
     boolean existsByMemberAndCourse_CourseId(Member member, Long courseId);
 
-    void deleteByMember_SocialIdAndCourse_CourseId(String socialId, Long courseId);
+    List<CourseMember> findByMemberAndScrapFolder_ScrapFolderId(Member member, Long scrapFolderId);
 
-    List<CourseMember> findByMember_SocialId(String socialId);
+    List<CourseMember> findAllByMemberAndScrapFolder_ScrapFolderIdAndCourse_CourseIdIn(Member member, Long scrapFolderId, List<Long> courseIds);
 
-    List<CourseMember> findAllByMember_SocialIdAndCourse_CourseIdIn(String socialId, List<Long> courseIds);
+    void deleteByCourseAndScrapFolder_ScrapFolderIdAndMember(Course course, Long scrapFolderId, Member member);
 
-    void deleteByCourse_CourseIdAndMember_SocialId(Long courseId, String socialId);
+    Optional<CourseMember> findByCourse_CourseIdAndMemberAndScrapFolder_ScrapFolderId(Long courseId, Member member, Long scrapFolderId);
 
-    CourseMember findByCourse_CourseIdAndMember_SocialId(Long courseId, String socialId);
-
-    Optional<CourseMember> findByMember_SocialIdAndCourse_CourseId(String socialId, Long courseId);
+    void deleteByCourse_CourseIdAndMemberAndScrapFolder_ScrapFolderId(Long courseId, Member member, Long scrapFolderId);
 }
