@@ -1,7 +1,6 @@
 package com.team6.sole.domain.home;
 
 import com.team6.sole.domain.home.entity.Course;
-import com.team6.sole.domain.home.repository.CourseRepository;
 import com.team6.sole.domain.member.MemberRepository;
 import com.team6.sole.domain.member.entity.Member;
 import com.team6.sole.infra.direction.DirectionService;

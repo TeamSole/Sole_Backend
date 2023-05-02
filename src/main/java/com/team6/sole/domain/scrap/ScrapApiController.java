@@ -55,45 +55,31 @@ public class ScrapApiController {
         return ResponseEntity.ok(CommonApiResponse.of(true));
     }
 
-    @GetMapping("default")
-    @ApiOperation(value = "기본 스크랩 폴더 조회")
+    @GetMapping("{scrapFolderId}")
+    @ApiOperation(value = "폴더 속 코스 보기")
     public ResponseEntity<CommonApiResponse<List<HomeResponseDto>>> showScrapDetails(
-            @ApiIgnore @LoginUser Member member) {
-        return ResponseEntity.ok(CommonApiResponse.of(scrapService.showScrapDetails(member)));
+            @ApiIgnore @LoginUser Member member,
+            @PathVariable Long scrapFolderId) {
+        return ResponseEntity.ok(CommonApiResponse.of(scrapService.showScrapDetails(member, scrapFolderId)));
     }
 
-    @PostMapping("default/{scrapFolderId}")
-    @ApiOperation(value = "기본 스크랩 폴더에서 새 폴더로 이동")
+    @PutMapping("{fromScrapFolderId}/{toScrapFolderId}")
+    @ApiOperation(value = "폴더에서 폴더로 이동")
     public ResponseEntity<CommonApiResponse<NewScrapFolderResponseDto>> makeNewFolderScrap(
-            @PathVariable Long scrapFolderId,
+            @PathVariable Long fromScrapFolderId,
+            @PathVariable Long toScrapFolderId,
             @ApiIgnore @LoginUser Member member,
             @RequestBody NewScrapFolderRequestDto newScrapFolderRequestDto) {
-        return ResponseEntity.ok(CommonApiResponse.of(scrapService.makeNewFolderScrap(member, scrapFolderId, newScrapFolderRequestDto.getCourseIds())));
-    }
-
-    @GetMapping("{scrapFolderId}")
-    @ApiOperation(value = "새 폴더 속 코스 보기")
-    public ResponseEntity<CommonApiResponse<List<HomeResponseDto>>> showNewScrapDetails(
-            @PathVariable Long scrapFolderId) {
-        return ResponseEntity.ok(CommonApiResponse.of(scrapService.showNewScrapDetails(scrapFolderId)));
-    }
-
-    @DeleteMapping("default/{courseIds}")
-    @ApiOperation(value = "기본 스크랩 폴더에서 코스 삭제(스크랩 취소)")
-    public ResponseEntity<CommonApiResponse<Boolean>> delScrap(
-            @ApiIgnore @LoginUser Member member,
-            @PathVariable List<Long> courseIds) {
-        scrapService.delScrap(member, courseIds);
-        return ResponseEntity.ok(CommonApiResponse.of(true));
+        return ResponseEntity.ok(CommonApiResponse.of(scrapService.makeNewFolderScrap(member, fromScrapFolderId, toScrapFolderId, newScrapFolderRequestDto.getCourseIds())));
     }
 
     @DeleteMapping("{scrapFolderId}/{courseIds}")
-    @ApiOperation(value = "새 스크랩 폴더에서 코스 삭제")
-    public ResponseEntity<CommonApiResponse<Boolean>> delNewScrap(
+    @ApiOperation(value = "기본 스크랩 폴더에서 코스 삭제(스크랩 취소)")
+    public ResponseEntity<CommonApiResponse<Boolean>> delScrap(
             @ApiIgnore @LoginUser Member member,
             @PathVariable Long scrapFolderId,
             @PathVariable List<Long> courseIds) {
-        scrapService.delNewScrap(member, scrapFolderId, courseIds);
+        scrapService.delScrap(member, scrapFolderId, courseIds);
         return ResponseEntity.ok(CommonApiResponse.of(true));
     }
 }

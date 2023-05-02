@@ -1,5 +1,6 @@
 package com.team6.sole.domain.scrap.entity;
 
+import com.team6.sole.domain.home.entity.relation.CourseMember;
 import com.team6.sole.domain.member.entity.Member;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -23,7 +24,7 @@ public class ScrapFolder {
     private Member member;
 
     @OneToMany(mappedBy = "scrapFolder", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<CourseMemberScrapFolder> courseMemberScrapFolders = new ArrayList<>();
+    private List<CourseMember> courseMembers = new ArrayList<>();
 
     public void modScrapFolderName(String scrapFolderName) {
         this.scrapFolderName = scrapFolderName;
@@ -31,10 +32,10 @@ public class ScrapFolder {
 
     @Builder
     public ScrapFolder(Long scrapFolderId, String scrapFolderName,
-                       Member member, List<CourseMemberScrapFolder> courseMemberScrapFolders) {
+                       Member member, List<CourseMember> courseMembers) {
         this.scrapFolderId = scrapFolderId;
         this.scrapFolderName = scrapFolderName;
         this.member = member;
-        this.courseMemberScrapFolders = courseMemberScrapFolders;
+        this.courseMembers = courseMembers;
     }
 }
