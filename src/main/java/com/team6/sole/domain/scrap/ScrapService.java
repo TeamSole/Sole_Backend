@@ -67,6 +67,13 @@ public class ScrapService {
     // 스크랩 폴더 삭제
     @Transactional
     public void delScrapFolder(Long scrapFolderId) {
+        ScrapFolder scrapFolder = scrapFolderRespository.findById(scrapFolderId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.SCRAP_FOLDER_NOT_FOUND));
+
+        // 스크랩 폴더에 있는 코스들의 스크랩 수를 감소시킨다.
+        for (CourseMember courseMember : scrapFolder.getCourseMembers()) {
+            courseMember.getCourse().removeScrapCount();
+        }
         scrapFolderRespository.deleteByScrapFolderId(scrapFolderId);
     }
 

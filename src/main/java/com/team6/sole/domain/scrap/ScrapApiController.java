@@ -48,7 +48,7 @@ public class ScrapApiController {
     }
 
     @DeleteMapping("{scrapFolderId}")
-    @ApiOperation(value = "스크랩 폴더 삭제")
+    @ApiOperation(value = "스크랩 폴더 삭제(폴더 속 코스들 스크랩수 - 1)")
     public ResponseEntity<CommonApiResponse<Boolean>> delScrapFolder(
             @PathVariable Long scrapFolderId) {
         scrapService.delScrapFolder(scrapFolderId);
