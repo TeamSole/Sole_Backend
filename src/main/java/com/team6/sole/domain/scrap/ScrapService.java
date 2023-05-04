@@ -84,7 +84,8 @@ public class ScrapService {
                 .orElseThrow(() -> new NotFoundException(ErrorCode.SCRAP_FOLDER_NOT_FOUND));
         List<CourseMember> courseMembers = courseMemberRepository.findAllByMemberAndScrapFolder_ScrapFolderIdAndCourse_CourseIdIn(member, fromScrapFolderId, courseIds);
 
-        for (CourseMember scrap : courseMembers) {
+        // 중복 스크랩
+        /*for (CourseMember scrap : courseMembers) {
             if (new HashSet<>(courseMembers.stream()
                     .map(CourseMember::getCourse)
                     .collect(Collectors.toList()))
@@ -95,7 +96,8 @@ public class ScrapService {
             }
 
             scrap.modScrapFolder(scrapFolder);
-        }
+        }*/
+        courseMembers.forEach(scrap -> scrap.modScrapFolder(scrapFolder));
 
         return NewScrapFolderResponseDto.of(scrapFolder.getScrapFolderName(), courseMembers);
     }
