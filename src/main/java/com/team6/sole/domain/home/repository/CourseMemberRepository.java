@@ -17,7 +17,7 @@ public interface CourseMemberRepository extends JpaRepository<CourseMember, Long
 
     void deleteByCourseAndScrapFolder_ScrapFolderIdAndMember(Course course, Long scrapFolderId, Member member);
 
-    Optional<CourseMember> findByCourse_CourseIdAndMemberAndScrapFolder_ScrapFolderId(Long courseId, Member member, Long scrapFolderId);
+    Optional<CourseMember> findByCourse_CourseIdAndMember(Long courseId, Member member);
 
-    void deleteByCourse_CourseIdAndMemberAndScrapFolder_ScrapFolderId(Long courseId, Member member, Long scrapFolderId);
+    void deleteByCourse_CourseIdAndMember(Long courseId, Member member);
 }

@@ -100,12 +100,12 @@ public class HomeApiController {
         return ResponseEntity.ok(CommonApiResponse.of(homeService.showRecommendCourses(member)));
     }
 
-    @PostMapping("{courseId}/{scrapFolderId}")
+    @PostMapping("{courseId}")
     @ApiOperation(value = "코스 스크랩 및 취소")
     public ResponseEntity<Void> scrapCourse(
             @ApiIgnore @LoginUser Member member,
             @PathVariable Long courseId,
-            @PathVariable Long scrapFolderId) {
+            @RequestParam(required = false) Long scrapFolderId) {
         homeService.scrapCourse(member, courseId, scrapFolderId);
         return ResponseEntity.ok().build();
     }

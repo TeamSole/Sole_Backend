@@ -339,12 +339,11 @@ public class HomeService {
     @Transactional
     public synchronized void scrapCourse(Member member, Long courseId, Long scrapFolderId) {
         // Optional로 이미 스크랩되어있는지 확인
-        Optional<CourseMember> checkCourseMember =
-                courseMemberRepository.findByCourse_CourseIdAndMemberAndScrapFolder_ScrapFolderId(courseId, member, scrapFolderId);
+        Optional<CourseMember> checkCourseMember = courseMemberRepository.findByCourse_CourseIdAndMember(courseId, member);
 
         // 이미 스크랩되어있다면 취소, 아니면 스크랩
         if (checkCourseMember.isPresent()) {
-            courseMemberRepository.deleteByCourse_CourseIdAndMemberAndScrapFolder_ScrapFolderId(courseId, member, scrapFolderId);
+            courseMemberRepository.deleteByCourse_CourseIdAndMember(courseId, member);
             checkCourseMember.get().getCourse().removeScrapCount();
         } else {
             ScrapFolder scrapFolder = scrapFolderRespository.findById(scrapFolderId)
