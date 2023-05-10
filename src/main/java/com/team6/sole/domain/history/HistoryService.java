@@ -9,7 +9,6 @@ import com.team6.sole.domain.home.entity.Place;
 import com.team6.sole.domain.home.model.PlaceCategory;
 import com.team6.sole.domain.home.model.TransCategory;
 import com.team6.sole.domain.home.repository.CourseCustomRepository;
-import com.team6.sole.domain.member.MemberRepository;
 import com.team6.sole.domain.member.entity.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,7 +20,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class HistoryService {
-    private final MemberRepository memberRepository;
     private final CourseCustomRepository courseCustomRepository;
 
     // 나의 기록 보기(상단)
@@ -44,40 +42,36 @@ public class HistoryService {
     // 나의 기록 보기(하단)(5개 + 5n)
     @Transactional(readOnly = true)
     public List<HomeResponseDto> showMyCourseHistories(Member member, Long courseId, HistorySearchRequestDto historySearchRequestDto) {
-        // 내가 기록한 코스 중 검색 조건에 맞는 코스만 필터링
-        if (historySearchRequestDto != null) {
-            List<Course> filterCourses = courseCustomRepository.findAllByCatgegoryAndWriter(
-                    courseId,
-                    member,
-                    historySearchRequestDto.getPlaceCategories(),
-                    historySearchRequestDto.getWithCategories(),
-                    historySearchRequestDto.getTransCategories());
-            boolean searchFinalPage = filterCourses.size() - 1 != -1 && courseCustomRepository.findAllByCatgegoryAndWriter(
-                    filterCourses.get(filterCourses.size() - 1).getCourseId(),
-                    member,
-                    historySearchRequestDto.getPlaceCategories(),
-                    historySearchRequestDto.getWithCategories(),
-                    historySearchRequestDto.getTransCategories()).isEmpty();
+        if (historySearchRequestDto == null) {
+            // 내가 기록한 코스 findAll
+            List<Course> courses = courseCustomRepository.findAllByWriter(courseId, member);
+            boolean finalPage = courses.size() - 1 != -1 && courseCustomRepository.findAllByWriter(
+                    courses.get(courses.size() - 1).getCourseId(),
+                    member).isEmpty();
 
-            return filterCourses.stream()
+            return courses.stream()
                     .map(course -> HomeResponseDto.of(
                             course,
                             true,
-                            searchFinalPage))
+                            finalPage))
                     .collect(Collectors.toList());
         }
 
-        // 내가 기록한 코스 findAll
-        List<Course> courses = courseCustomRepository.findAllByWriter(courseId, member);
-        boolean finalPage = courses.size() - 1 != -1 && courseCustomRepository.findAllByWriter(
-                courses.get(courses.size() - 1).getCourseId(),
-                member).isEmpty();
+        // 내가 기록한 코스 중 검색 조건에 맞는 코스만 필터링
+        List<Course> filterCourses = courseCustomRepository.findAllByCatgegoryAndWriter(
+                courseId,
+                member,
+                historySearchRequestDto);
+        boolean searchFinalPage = filterCourses.size() - 1 != -1 && courseCustomRepository.findAllByCatgegoryAndWriter(
+                filterCourses.get(filterCourses.size() - 1).getCourseId(),
+                member,
+                historySearchRequestDto).isEmpty();
 
-        return courses.stream()
+        return filterCourses.stream()
                 .map(course -> HomeResponseDto.of(
                         course,
                         true,
-                        finalPage))
+                        searchFinalPage))
                 .collect(Collectors.toList());
     }
 

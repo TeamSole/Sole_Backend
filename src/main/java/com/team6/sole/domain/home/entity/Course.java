@@ -2,6 +2,7 @@ package com.team6.sole.domain.home.entity;
 
 import com.team6.sole.domain.home.entity.relation.CourseMember;
 import com.team6.sole.domain.home.model.PlaceCategory;
+import com.team6.sole.domain.home.model.Region;
 import com.team6.sole.domain.home.model.TransCategory;
 import com.team6.sole.domain.home.model.WithCategory;
 import com.team6.sole.domain.member.entity.Member;
@@ -39,6 +40,9 @@ public class Course extends BaseTimeEntity {
 
     private double distance;
 
+    @Enumerated(EnumType.STRING)
+    private Region region;
+
     @ElementCollection(fetch = FetchType.LAZY) @Enumerated(EnumType.STRING)
     Set<PlaceCategory> placeCategories;
 
@@ -75,7 +79,7 @@ public class Course extends BaseTimeEntity {
         this.scrapCount--;
     }
 
-    public void modCourse(String title, Date startDate, int duration, double distance,
+    public void modCourse(String title, Date startDate, int duration, double distance, Region region,
                           Set<PlaceCategory> placeCategories,
                           Set<WithCategory> withCategories,
                           Set<TransCategory> transCategories,
@@ -84,6 +88,7 @@ public class Course extends BaseTimeEntity {
         this.startDate = startDate;
         this.duration = duration;
         this.distance = distance;
+        this.region = region;
         this.placeCategories = placeCategories;
         this.withCategories = withCategories;
         this.transCategories = transCategories;
@@ -97,7 +102,7 @@ public class Course extends BaseTimeEntity {
     @Builder
     public Course(Long courseId, String thumbnailUrl, int scrapCount,
                   String title, String description, Date startDate,
-                  int duration, double distance,
+                  int duration, double distance, Region region,
                   Set<PlaceCategory> placeCategories, Set<WithCategory> withCategories, Set<TransCategory> transCategories,
                   Member writer, Member member, List<Place> places, List<CourseMember> courseMembers,
                   List<Declaration> declarations) {
@@ -109,6 +114,7 @@ public class Course extends BaseTimeEntity {
         this.startDate = startDate;
         this.duration = duration;
         this.distance = distance;
+        this.region = region;
         this.placeCategories = placeCategories;
         this.withCategories = withCategories;
         this.transCategories = transCategories;
