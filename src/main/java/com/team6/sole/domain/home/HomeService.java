@@ -83,7 +83,6 @@ public class HomeService {
 
     // 인기 코스 추천(7개 fix)
     @Transactional(readOnly = true)
-    @Cacheable(value = "recommends")
     public List<RecommendCourseResponseDto> showRecommendCourses(Member member) {
         return member.getRecommendCourses().stream()
                 .map(RecommendCourseResponseDto::of)

@@ -25,7 +25,6 @@ public class RecommendCourseScheduler {
 
     @Async("home")
     @Transactional
-    @CacheEvict(value = "recommends", allEntries = true) // 캐싱 초기화
     @Scheduled(cron = "0 0 0/1 * * *") // 매 1시간마다(01:00 02:00 03:00 ....)
     public void recommendCourses() {
         List<Member> members = memberRepository.findAll();
