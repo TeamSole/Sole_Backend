@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -84,7 +85,7 @@ public class HomeService {
 
     // 인기 코스 추천(7개 fix)
     @Transactional(readOnly = true)
-    @Cacheable(value = "recommends", key = "#member.memberId")
+    @CachePut(value = "recommends", key = "#member.memberId")
     public List<RecommendCourseResponseDto> showRecommendCourses(Member member) {
         return member.getRecommendCourses().stream()
                 .map(RecommendCourseResponseDto::of)

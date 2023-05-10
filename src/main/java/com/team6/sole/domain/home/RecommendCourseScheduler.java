@@ -6,7 +6,7 @@ import com.team6.sole.domain.member.entity.Member;
 import com.team6.sole.infra.direction.DirectionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -23,7 +23,7 @@ public class RecommendCourseScheduler {
 
     @Async("home")
     @Transactional
-    @CacheEvict(value = "recommends", allEntries = true) // 캐싱 초기화
+    @CachePut(value = "recommends") // 캐싱 초기화
     @Scheduled(cron = "0 0 0/1 * * *") // 매 1시간마다(01:00 02:00 03:00 ....)
     public void recommendCourses() {
         List<Member> members = memberRepository.findAll();
