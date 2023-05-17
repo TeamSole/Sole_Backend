@@ -46,8 +46,8 @@ public class FollowResponseDto {
                 .followId(follow.getFollowId())
                 .member(MemberResponseDto.of(follow.getFromMember()))
                 .followStatus(followStatus)
-                .followerCount(follow.getToMember().getFollowInfo().getFollower())
-                .followingCount(follow.getToMember().getFollowInfo().getFollowing())
+                .followerCount(follow.getFromMember().getFollowInfo().getFollower())
+                .followingCount(follow.getFromMember().getFollowInfo().getFollowing())
                 .build();
     }
 }
