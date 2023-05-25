@@ -6,6 +6,7 @@ import com.team6.sole.domain.history.dto.HistorySearchRequestDto;
 import com.team6.sole.domain.home.entity.Course;
 import com.team6.sole.domain.home.entity.QCourse;
 import com.team6.sole.domain.home.model.PlaceCategory;
+import com.team6.sole.domain.home.model.Region;
 import com.team6.sole.domain.home.model.TransCategory;
 import com.team6.sole.domain.home.model.WithCategory;
 import com.team6.sole.domain.member.entity.Member;
@@ -38,10 +39,11 @@ public class CourseCustomRepository {
     }
 
     // 홈 검색
-    public List<Course> findAllByTitleContaining(Long courseId, String title) {
+    public List<Course> findAllByTitleContaining(Long courseId, String title, List<Region> regions) {
         return jpaQueryFactory
                 .selectFrom(QCourse.course)
                 .where(ltCourseId(courseId), // 동적 쿼리
+                        filterSearchRegions(regions),
                         (QCourse.course.title.contains(title)))
                 .orderBy(QCourse.course.courseId.desc())
                 .limit(5)
@@ -83,6 +85,12 @@ public class CourseCustomRepository {
     private BooleanExpression filterRegions(HistorySearchRequestDto historySearchRequestDto) {
         return historySearchRequestDto.getRegions() != null
                 ? QCourse.course.region.in((historySearchRequestDto.getRegions()))
+                : null;
+    }
+
+    private BooleanExpression filterSearchRegions(List<Region> regions) {
+        return regions != null
+                ? QCourse.course.region.in((regions))
                 : null;
     }
 

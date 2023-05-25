@@ -1,6 +1,7 @@
 package com.team6.sole.domain.home;
 
 import com.team6.sole.domain.home.dto.*;
+import com.team6.sole.domain.home.model.Region;
 import com.team6.sole.domain.member.entity.Member;
 import com.team6.sole.global.config.CommonApiResponse;
 import com.team6.sole.global.config.security.jwt.annotation.LoginUser;
@@ -43,9 +44,10 @@ public class HomeApiController {
     public ResponseEntity<CommonApiResponse<List<HomeResponseDto>>> showHomes(
             @ApiIgnore @LoginUser Member member,
             @RequestParam(required = false) Long courseId,
-            @RequestParam(required = false) String searchWord) {
+            @RequestParam(required = false) String searchWord,
+            @RequestParam(required = false) List<Region> regions) {
         if (searchWord != null) {
-            return ResponseEntity.ok(CommonApiResponse.of(homeService.searchHomes(member, courseId, searchWord)));
+            return ResponseEntity.ok(CommonApiResponse.of(homeService.searchHomes(member, courseId, searchWord, regions)));
         }
         return ResponseEntity.ok(CommonApiResponse.of(homeService.showHomes(member, courseId)));
     }

@@ -123,12 +123,12 @@ public class HomeService {
 
     // 홈 검색(10개 + 10n)
     @Transactional(readOnly = true)
-    public List<HomeResponseDto> searchHomes(Member member, Long courseId, String searchWord) {
+    public List<HomeResponseDto> searchHomes(Member member, Long courseId, String searchWord, List<Region> regions) {
         // 검색어로 코스 찾기
-        List<Course> searchCourses = courseCustomRepository.findAllByTitleContaining(courseId, searchWord);
+        List<Course> searchCourses = courseCustomRepository.findAllByTitleContaining(courseId, searchWord, regions);
         boolean finalPage = searchCourses.size() - 1 != -1 && courseCustomRepository.findAllByTitleContaining(
                 searchCourses.get(searchCourses.size() - 1).getCourseId(),
-                searchWord).isEmpty();
+                searchWord, regions).isEmpty();
 
         return searchCourses.stream()
                 .map(course -> HomeResponseDto.of(
@@ -180,7 +180,7 @@ public class HomeService {
                 .description(courseRequestDto.getDescription())
                 .startDate(formatter.parse(courseRequestDto.getDate()))
                 .duration(courseRequestDto.getPlaceRequestDtos().stream()
-                        .mapToInt(PlaceRequestDto::getDuration)
+                        .mapToInt(PlaceRequestDto::getDuration) 
                         .sum())
                 .distance(totalDistance)
                 .region(makeRegion(
