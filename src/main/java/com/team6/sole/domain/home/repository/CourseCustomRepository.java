@@ -39,11 +39,14 @@ public class CourseCustomRepository {
     }
 
     // 홈 검색
-    public List<Course> findAllByTitleContaining(Long courseId, String title, List<Region> regions) {
+    public List<Course> findAllByTitleContaining(Long courseId, String title,
+                                                 Set<PlaceCategory> placeCategories, Set<TransCategory> transCategories, Set<WithCategory> withCategories,
+                                                 List<Region> regions) {
         return jpaQueryFactory
                 .selectFrom(QCourse.course)
                 .where(ltCourseId(courseId), // 동적 쿼리
-                        filterSearchRegions(regions),
+                        filterCategories(placeCategories, transCategories, withCategories),
+                        filterRegions(regions),
                         (QCourse.course.title.contains(title)))
                 .orderBy(QCourse.course.courseId.desc())
                 .limit(5)
@@ -63,13 +66,14 @@ public class CourseCustomRepository {
     // 나의 기록 보기(하단)(5개 + 5n)
     public List<Course> findAllByCatgegoryAndWriter(Long courseId,
                                                     Member writer,
-                                                    HistorySearchRequestDto historySearchRequestDto) {
+                                                    Set<PlaceCategory> placeCategories, Set<TransCategory> transCategories, Set<WithCategory> withCategories,
+                                                    List<Region> regions) {
 
         return jpaQueryFactory
                 .selectFrom(QCourse.course)
                 .where(ltCourseId(courseId), // 동적 쿼리
-                        filterCategories(historySearchRequestDto),
-                        filterRegions(historySearchRequestDto),
+                        filterCategories(placeCategories, transCategories, withCategories),
+                        filterRegions(regions),
                         filterWriter(writer))
                 .orderBy(QCourse.course.courseId.desc())
                 .limit(5)
@@ -82,28 +86,20 @@ public class CourseCustomRepository {
                 : null;
     }
 
-    private BooleanExpression filterRegions(HistorySearchRequestDto historySearchRequestDto) {
-        return historySearchRequestDto.getRegions() != null
-                ? QCourse.course.region.in((historySearchRequestDto.getRegions()))
-                : null;
-    }
-
-    private BooleanExpression filterSearchRegions(List<Region> regions) {
+    private BooleanExpression filterRegions(List<Region> regions) {
         return regions != null
-                ? QCourse.course.region.in((regions))
+                ? QCourse.course.region.in(regions)
                 : null;
     }
 
-    private BooleanExpression filterCategories(HistorySearchRequestDto historySearchRequestDto) {
-        if (historySearchRequestDto.getPlaceCategories() == null
-                && historySearchRequestDto.getWithCategories() == null
-                && historySearchRequestDto.getTransCategories() == null) {
+    private BooleanExpression filterCategories(Set<PlaceCategory> placeCategories, Set<TransCategory> transCategories, Set<WithCategory> withCategories) {
+        if (placeCategories == null && transCategories == null && withCategories == null) {
             return null;
         }
 
-        return QCourse.course.placeCategories.any().in(historySearchRequestDto.getPlaceCategories())
-                .or(QCourse.course.withCategories.any().in(historySearchRequestDto.getWithCategories())
-                        .or(QCourse.course.transCategories.any().in(historySearchRequestDto.getTransCategories())));
+        return QCourse.course.placeCategories.any().in(placeCategories)
+                .or(QCourse.course.withCategories.any().in(withCategories)
+                        .or(QCourse.course.transCategories.any().in(transCategories)));
     }
 
     private BooleanExpression filterWriter(Member writer) {

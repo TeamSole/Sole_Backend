@@ -5,7 +5,10 @@ import com.team6.sole.domain.follow.model.FollowStatus;
 import com.team6.sole.domain.home.dto.*;
 import com.team6.sole.domain.home.entity.*;
 import com.team6.sole.domain.home.entity.relation.CourseMember;
+import com.team6.sole.domain.home.model.PlaceCategory;
 import com.team6.sole.domain.home.model.Region;
+import com.team6.sole.domain.home.model.TransCategory;
+import com.team6.sole.domain.home.model.WithCategory;
 import com.team6.sole.domain.home.repository.*;
 import com.team6.sole.domain.member.entity.Member;
 import com.team6.sole.domain.scrap.ScrapFolderRespository;
@@ -106,6 +109,8 @@ public class HomeService {
                         member.getFavoriteCategory().getPlaceCategories(),
                         member.getFavoriteCategory().getWithCategories(),
                         member.getFavoriteCategory().getTransCategories());
+
+        // 다음 페이지 존재여부
         boolean finalPage = courses.size() - 1 != -1
                 && courseCustomRepository.findAllByCategory(courses.get(courses.size() - 1).getCourseId(),
                 member.getFavoriteCategory().getPlaceCategories(),
@@ -123,12 +128,16 @@ public class HomeService {
 
     // 홈 검색(10개 + 10n)
     @Transactional(readOnly = true)
-    public List<HomeResponseDto> searchHomes(Member member, Long courseId, String searchWord, List<Region> regions) {
+    public List<HomeResponseDto> searchHomes(Member member, Long courseId, String searchWord,
+                                             Set<PlaceCategory> placeCategories, Set<TransCategory> transCategories, Set<WithCategory> withCategories,
+                                             List<Region> regions) {
         // 검색어로 코스 찾기
-        List<Course> searchCourses = courseCustomRepository.findAllByTitleContaining(courseId, searchWord, regions);
+        List<Course> searchCourses = courseCustomRepository.findAllByTitleContaining(courseId, searchWord, placeCategories, transCategories, withCategories, regions);
+
+        // 다음 페이지 존재여부
         boolean finalPage = searchCourses.size() - 1 != -1 && courseCustomRepository.findAllByTitleContaining(
                 searchCourses.get(searchCourses.size() - 1).getCourseId(),
-                searchWord, regions).isEmpty();
+                searchWord, placeCategories, transCategories, withCategories, regions).isEmpty();
 
         return searchCourses.stream()
                 .map(course -> HomeResponseDto.of(

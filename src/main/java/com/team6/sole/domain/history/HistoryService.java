@@ -61,11 +61,19 @@ public class HistoryService {
         List<Course> filterCourses = courseCustomRepository.findAllByCatgegoryAndWriter(
                 courseId,
                 member,
-                historySearchRequestDto);
+                historySearchRequestDto.getPlaceCategories(),
+                historySearchRequestDto.getTransCategories(),
+                historySearchRequestDto.getWithCategories(),
+                historySearchRequestDto.getRegions());
+
+        // 마지막 페이지 여부
         boolean searchFinalPage = filterCourses.size() - 1 != -1 && courseCustomRepository.findAllByCatgegoryAndWriter(
                 filterCourses.get(filterCourses.size() - 1).getCourseId(),
                 member,
-                historySearchRequestDto).isEmpty();
+                historySearchRequestDto.getPlaceCategories(),
+                historySearchRequestDto.getTransCategories(),
+                historySearchRequestDto.getWithCategories(),
+                historySearchRequestDto.getRegions()).isEmpty();
 
         return filterCourses.stream()
                 .map(course -> HomeResponseDto.of(
