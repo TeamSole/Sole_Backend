@@ -2,7 +2,6 @@ package com.team6.sole.domain.home.repository;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.team6.sole.domain.history.dto.HistorySearchRequestDto;
 import com.team6.sole.domain.home.entity.Course;
 import com.team6.sole.domain.home.entity.QCourse;
 import com.team6.sole.domain.home.model.PlaceCategory;
@@ -45,7 +44,9 @@ public class CourseCustomRepository {
         return jpaQueryFactory
                 .selectFrom(QCourse.course)
                 .where(ltCourseId(courseId), // 동적 쿼리
-                        filterCategories(placeCategories, transCategories, withCategories),
+                        filterPlaceCategories(placeCategories),
+                        filterTransCategories(transCategories),
+                        filterWithCategories(withCategories),
                         filterRegions(regions),
                         (QCourse.course.title.contains(title)))
                 .orderBy(QCourse.course.courseId.desc())
@@ -72,7 +73,9 @@ public class CourseCustomRepository {
         return jpaQueryFactory
                 .selectFrom(QCourse.course)
                 .where(ltCourseId(courseId), // 동적 쿼리
-                        filterCategories(placeCategories, transCategories, withCategories),
+                        filterPlaceCategories(placeCategories),
+                        filterTransCategories(transCategories),
+                        filterWithCategories(withCategories),
                         filterRegions(regions),
                         filterWriter(writer))
                 .orderBy(QCourse.course.courseId.desc())
@@ -92,14 +95,22 @@ public class CourseCustomRepository {
                 : null;
     }
 
-    private BooleanExpression filterCategories(Set<PlaceCategory> placeCategories, Set<TransCategory> transCategories, Set<WithCategory> withCategories) {
-        if (placeCategories == null && transCategories == null && withCategories == null) {
-            return null;
-        }
+    private BooleanExpression filterPlaceCategories(Set<PlaceCategory> placeCategories) {
+        return placeCategories != null
+                ? QCourse.course.placeCategories.any().in(placeCategories)
+                : null;
+    }
 
-        return QCourse.course.placeCategories.any().in(placeCategories)
-                .or(QCourse.course.withCategories.any().in(withCategories)
-                        .or(QCourse.course.transCategories.any().in(transCategories)));
+    private BooleanExpression filterTransCategories(Set<TransCategory> transCategories) {
+        return transCategories != null
+                ? QCourse.course.transCategories.any().in(transCategories)
+                : null;
+    }
+
+    private BooleanExpression filterWithCategories(Set<WithCategory> withCategories) {
+        return withCategories != null
+                ? QCourse.course.withCategories.any().in(withCategories)
+                : null;
     }
 
     private BooleanExpression filterWriter(Member writer) {
