@@ -340,9 +340,7 @@ public class HomeService {
     // 코스 삭제
     @Transactional
     public void delCourse(Long courseId) {
-        Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.COURSE_NOT_FOUND));
-        courseRepository.delete(course);
+        courseRepository.deleteById(courseId);
     }
 
     // 코스 스크랩 및 취소
