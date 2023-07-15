@@ -19,6 +19,8 @@ import java.util.Set;
 public class CourseCustomRepository {
     private final JPAQueryFactory jpaQueryFactory;
 
+    // 하이 나 공군 왔다.
+
     // 홈 보기
     public List<Course> findAllByCategory(Long courseId,
                                         Set<PlaceCategory> placeCategories,
