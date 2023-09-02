@@ -73,9 +73,7 @@ public class CourseCustomRepository {
         return jpaQueryFactory
                 .selectFrom(QCourse.course)
                 .where(ltCourseId(courseId), // 동적 쿼리
-                        filterPlaceCategories(placeCategories),
-                        filterTransCategories(transCategories),
-                        filterWithCategories(withCategories),
+                        filterCategories(placeCategories, transCategories, withCategories),
                         filterRegions(regions),
                         filterWriter(writer))
                 .orderBy(QCourse.course.courseId.desc())
@@ -93,6 +91,14 @@ public class CourseCustomRepository {
         return regions != null
                 ? QCourse.course.region.in(regions)
                 : null;
+    }
+
+    private BooleanExpression filterCategories(Set<PlaceCategory> placeCategories, Set<TransCategory> transCategories, Set<WithCategory> withCategories) {
+        return (placeCategories == null && transCategories == null && withCategories == null)
+                ? null               
+                : QCourse.course.placeCategories.any().in(placeCategories)
+                .or(QCourse.course.transCategories.any().in(transCategories))
+                .or(QCourse.course.withCategories.any().in(withCategories));
     }
 
     private BooleanExpression filterPlaceCategories(Set<PlaceCategory> placeCategories) {
