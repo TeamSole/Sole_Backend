@@ -73,7 +73,9 @@ public class CourseCustomRepository {
         return jpaQueryFactory
                 .selectFrom(QCourse.course)
                 .where(ltCourseId(courseId), // 동적 쿼리
-                        filterCategories(placeCategories, transCategories, withCategories),
+                        filterPlaceCategories(placeCategories),
+                        filterTransCategories(transCategories),
+                        filterWithCategories(withCategories),
                         filterRegions(regions),
                         filterWriter(writer))
                 .orderBy(QCourse.course.courseId.desc())
