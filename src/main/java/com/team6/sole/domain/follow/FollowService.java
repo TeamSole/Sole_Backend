@@ -76,8 +76,9 @@ public class FollowService {
         return followers.stream()
                 .map(follower -> FollowResponseDto.ofFollower(
                         follower,
-                        followRepository.existsByFromMember_SocialIdAndToMember_SocialId(follower.getFromMember().getSocialId(), member.getSocialId())
-                ? FollowStatus.FOLLOWING : FollowStatus.NOT_FOLLOW))
+                        followRepository.existsByFromMember_SocialIdAndToMember_SocialId(member.getSocialId(), follower.getFromMember().getSocialId())
+                                ? FollowStatus.FOLLOWING
+                                : FollowStatus.NOT_FOLLOW))
                 .collect(Collectors.toList());
     }
 

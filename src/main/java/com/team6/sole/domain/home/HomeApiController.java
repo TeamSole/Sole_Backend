@@ -1,6 +1,10 @@
 package com.team6.sole.domain.home;
 
 import com.team6.sole.domain.home.dto.*;
+import com.team6.sole.domain.home.model.PlaceCategory;
+import com.team6.sole.domain.home.model.Region;
+import com.team6.sole.domain.home.model.TransCategory;
+import com.team6.sole.domain.home.model.WithCategory;
 import com.team6.sole.domain.member.entity.Member;
 import com.team6.sole.global.config.CommonApiResponse;
 import com.team6.sole.global.config.security.jwt.annotation.LoginUser;
@@ -15,6 +19,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
@@ -43,9 +48,13 @@ public class HomeApiController {
     public ResponseEntity<CommonApiResponse<List<HomeResponseDto>>> showHomes(
             @ApiIgnore @LoginUser Member member,
             @RequestParam(required = false) Long courseId,
-            @RequestParam(required = false) String searchWord) {
+            @RequestParam(required = false) String searchWord,
+            @RequestParam(required = false) Set<PlaceCategory> placeCategories,
+            @RequestParam(required = false) Set<TransCategory> transCategories,
+            @RequestParam(required = false) Set<WithCategory> withCategories,
+            @RequestParam(required = false) List<Region> regions) {
         if (searchWord != null) {
-            return ResponseEntity.ok(CommonApiResponse.of(homeService.searchHomes(member, courseId, searchWord)));
+            return ResponseEntity.ok(CommonApiResponse.of(homeService.searchHomes(member, courseId, searchWord, placeCategories, transCategories, withCategories, regions)));
         }
         return ResponseEntity.ok(CommonApiResponse.of(homeService.showHomes(member, courseId)));
     }
@@ -100,12 +109,13 @@ public class HomeApiController {
         return ResponseEntity.ok(CommonApiResponse.of(homeService.showRecommendCourses(member)));
     }
 
-    @PostMapping("{courseId}/scrap")
+    @PostMapping("{courseId}")
     @ApiOperation(value = "코스 스크랩 및 취소")
     public ResponseEntity<Void> scrapCourse(
             @ApiIgnore @LoginUser Member member,
-            @PathVariable Long courseId) {
-        homeService.scrapCourse(member, courseId);
+            @PathVariable Long courseId,
+            @RequestParam(required = false) Long scrapFolderId) {
+        homeService.scrapCourse(member, courseId, scrapFolderId);
         return ResponseEntity.ok().build();
     }
 

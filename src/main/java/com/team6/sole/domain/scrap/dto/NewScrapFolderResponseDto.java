@@ -1,7 +1,6 @@
 package com.team6.sole.domain.scrap.dto;
 
 import com.team6.sole.domain.home.entity.relation.CourseMember;
-import com.team6.sole.domain.scrap.entity.CourseMemberScrapFolder;
 import lombok.*;
 
 import java.util.List;

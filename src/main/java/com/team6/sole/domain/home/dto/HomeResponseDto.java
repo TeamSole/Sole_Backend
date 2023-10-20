@@ -1,5 +1,6 @@
 package com.team6.sole.domain.home.dto;
 
+import com.querydsl.core.annotations.QueryProjection;
 import com.team6.sole.domain.home.HomeService;
 import com.team6.sole.domain.home.entity.Course;
 import lombok.*;

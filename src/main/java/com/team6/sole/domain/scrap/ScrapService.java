@@ -5,12 +5,10 @@ import com.team6.sole.domain.home.entity.Course;
 import com.team6.sole.domain.home.entity.relation.CourseMember;
 import com.team6.sole.domain.home.repository.CourseMemberRepository;
 import com.team6.sole.domain.home.repository.CourseRepository;
-import com.team6.sole.domain.member.MemberRepository;
 import com.team6.sole.domain.member.entity.Member;
 import com.team6.sole.domain.scrap.dto.NewScrapFolderResponseDto;
 import com.team6.sole.domain.scrap.dto.ScrapFolderResponseDto;
 import com.team6.sole.domain.scrap.dto.ScrapFolderRequestDto;
-import com.team6.sole.domain.scrap.entity.CourseMemberScrapFolder;
 import com.team6.sole.domain.scrap.entity.ScrapFolder;
 import com.team6.sole.global.error.ErrorCode;
 import com.team6.sole.global.error.exception.BadRequestException;
@@ -21,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,9 +28,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ScrapService {
     private final ScrapFolderRespository scrapFolderRespository;
-    private final MemberRepository memberRepository;
     private final CourseMemberRepository courseMemberRepository;
-    private final CourseMemberScrapFolderRepository courseMemberScrapFolderRepository;
     private final CourseRepository courseRepository;
 
     // 스크랩 폴더 추가
@@ -39,7 +36,7 @@ public class ScrapService {
     public ScrapFolderResponseDto makeScrapFolder(Member member, ScrapFolderRequestDto scrapFolderRequestDto) {
         ScrapFolder scrapFolder = ScrapFolder.builder()
                 .scrapFolderName(scrapFolderRequestDto.getScrapFolderName())
-                .courseMemberScrapFolders(new ArrayList<>())
+                .courseMembers(new ArrayList<>())
                 .member(member)
                 .build();
         scrapFolderRespository.save(scrapFolder);
@@ -70,72 +67,60 @@ public class ScrapService {
     // 스크랩 폴더 삭제
     @Transactional
     public void delScrapFolder(Long scrapFolderId) {
+        ScrapFolder scrapFolder = scrapFolderRespository.findById(scrapFolderId)
+                .orElseThrow(() -> new NotFoundException(ErrorCode.SCRAP_FOLDER_NOT_FOUND));
+
+        // 스크랩 폴더에 있는 코스들의 스크랩 수를 감소시킨다.
+        for (CourseMember courseMember : scrapFolder.getCourseMembers()) {
+            courseMember.getCourse().removeScrapCount();
+        }
         scrapFolderRespository.deleteByScrapFolderId(scrapFolderId);
     }
 
-    // 기본 폴더 속 코스 보기
-    @Transactional(readOnly = true)
-    public List<HomeResponseDto> showScrapDetails(Member member) {
-        List<CourseMember> courses = courseMemberRepository.findByMember_SocialId(member.getSocialId());
-
-        return courses.stream()
-                .map(course -> HomeResponseDto.of(course.getCourse(), true, false))
-                .collect(Collectors.toList());
-    }
-
-    // 기본 폴더에서 새 폴더로 이동
+    // 폴더에서 폴더로 이동
     @Transactional
-    public NewScrapFolderResponseDto makeNewFolderScrap(Member member, Long scrapFolderId, List<Long> courseIds) {
-        ScrapFolder scrapFolder = scrapFolderRespository.findById(scrapFolderId)
+    public NewScrapFolderResponseDto makeNewFolderScrap(Member member, Long fromScrapFolderId, Long toScrapFolderId, List<Long> courseIds) {
+        ScrapFolder scrapFolder = scrapFolderRespository.findById(toScrapFolderId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.SCRAP_FOLDER_NOT_FOUND));
-        List<CourseMember> courseMembers = courseMemberRepository.findAllByMember_SocialIdAndCourse_CourseIdIn(member.getSocialId(), courseIds);
+        List<CourseMember> courseMembers = courseMemberRepository.findAllByMemberAndScrapFolder_ScrapFolderIdAndCourse_CourseIdIn(member, fromScrapFolderId, courseIds);
 
-        for (CourseMember scrap : courseMembers) {
-            if (courseMemberScrapFolderRepository.existsByScrapFolderAndCourseMember(scrapFolder, scrap)
-                    || scrapFolder.getScrapFolderName().equals("기본 폴더")) {
+        // 중복 스크랩
+        /*for (CourseMember scrap : courseMembers) {
+            if (new HashSet<>(courseMembers.stream()
+                    .map(CourseMember::getCourse)
+                    .collect(Collectors.toList()))
+                    .containsAll(scrapFolder.getCourseMembers().stream()
+                            .map(CourseMember::getCourse)
+                            .collect(Collectors.toList()))) {
                 throw new BadRequestException(ErrorCode.ALREADY_SCRAPED);
             }
 
-            CourseMemberScrapFolder courseMemberScrapFolder = CourseMemberScrapFolder.builder()
-                    .scrapFolder(scrapFolder)
-                    .courseMember(scrap)
-                    .build();
-            courseMemberScrapFolderRepository.save(courseMemberScrapFolder);
-        }
+            scrap.modScrapFolder(scrapFolder);
+        }*/
+        courseMembers.forEach(scrap -> scrap.modScrapFolder(scrapFolder));
 
         return NewScrapFolderResponseDto.of(scrapFolder.getScrapFolderName(), courseMembers);
     }
 
-    // 새 폴더 속 코스 보기
+    // 폴더 속 코스 보기
     @Transactional(readOnly = true)
-    public List<HomeResponseDto> showNewScrapDetails(Long scrapFolderId) {
-        List<CourseMemberScrapFolder> courseMemberScrapFolders = courseMemberScrapFolderRepository
-                .findAllByScrapFolder_ScrapFolderId(scrapFolderId);
+    public List<HomeResponseDto> showScrapDetails(Member member, Long scrapFolderId) {
+        List<CourseMember> courseMembers = courseMemberRepository.findByMemberAndScrapFolder_ScrapFolderId(member, scrapFolderId);
 
-        return courseMemberScrapFolders.stream()
-                .map(newScrap -> HomeResponseDto.of(newScrap.getCourseMember().getCourse(), true, false))
+        return courseMembers.stream()
+                .map(newScrap -> HomeResponseDto.of(newScrap.getCourse(), true, false))
                 .collect(Collectors.toList());
     }
 
-    // 기본 폴더에서 코스 삭제(스크랩 수 -1)
+    // 폴더에서 코스 삭제(스크랩 수 - 1)
     @Transactional
-    public void delScrap(Member member, List<Long> courseIds) {
+    public void delScrap(Member member, Long scrapFolderId, List<Long> courseIds) {
         for (Long courseId : courseIds) {
             Course course = courseRepository.findById(courseId)
                     .orElseThrow(() -> new NotFoundException(ErrorCode.COURSE_NOT_FOUND));
 
-            courseMemberRepository.deleteByCourse_CourseIdAndMember_SocialId(courseId, member.getSocialId());
+            courseMemberRepository.deleteByCourseAndScrapFolder_ScrapFolderIdAndMember(course, scrapFolderId, member);
             course.removeScrapCount();
-        }
-    }
-
-    // 새 폴더에서 코스 삭제(스크랩 수 변동 없음)
-    @Transactional
-    public void delNewScrap(Member member, Long scrapFolderId, List<Long> courseIds) {
-        for (Long courseId : courseIds) {
-            CourseMember courseMember = courseMemberRepository.findByCourse_CourseIdAndMember_SocialId(courseId, member.getSocialId());
-
-            courseMemberScrapFolderRepository.deleteByCourseMemberAndScrapFolder_ScrapFolderId(courseMember, scrapFolderId);
         }
     }
 }

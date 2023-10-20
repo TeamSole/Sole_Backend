@@ -28,12 +28,12 @@ public class ScrapFolderResponseDto {
         return ScrapFolderResponseDto.builder()
                 .scrapFolderId(scrapFolder.getScrapFolderId())
                 .scrapFolderName(scrapFolder.getScrapFolderName())
-                .scrapFolderImg(scrapFolder.getCourseMemberScrapFolders().isEmpty()
+                .scrapFolderImg(scrapFolder.getCourseMembers().isEmpty()
                                 ? null
-                                : scrapFolder.getCourseMemberScrapFolders().get(0).getCourseMember().getCourse().getThumbnailUrl())
-                .scrapCount(scrapFolder.getCourseMemberScrapFolders().isEmpty()
+                                : scrapFolder.getCourseMembers().get(0).getCourse().getThumbnailUrl())
+                .scrapCount(scrapFolder.getCourseMembers().isEmpty()
                                 ? 0
-                                : scrapFolder.getCourseMemberScrapFolders().size())
+                                : scrapFolder.getCourseMembers().size())
                 .build();
     }
 }
