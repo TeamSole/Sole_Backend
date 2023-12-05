@@ -1,5 +1,6 @@
 package com.team6.sole.domain.member;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.team6.sole.domain.home.entity.Category;
 import com.team6.sole.domain.home.entity.Gps;
 import com.team6.sole.domain.member.dto.*;
@@ -33,6 +34,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -51,39 +55,64 @@ public class MemberService {
     private final AppleUtils appleUtils;
     private final RedisService redisService;
 
+    private static final String KAKAO = "kakao";
+    private static final String AUTHORIZATION = "Authorization";
+    private static final String BEARER = "Bearer ";
+
     // 회원체크 및 로그인(소셜)
     @SneakyThrows // 명시적 예외처리(lombok)
     @Transactional
     public ResponseEntity<CommonApiResponse<MemberResponseDto>> checkMember(String provider, OauthRequest oauthRequest) {
-        String socialId = "";
-        Social social = null;
-
-        if (provider.equals("kakao")) {
-            socialId = getKakaoUser(oauthRequest.getAccessToken()).getAuthenticationCode();
-            log.info(socialId);
-            social = Social.KAKAO;
-        } else {
-            socialId = appleUtils.verifyPublicKey(oauthRequest.getAccessToken()).get("sub").toString();
-            social = Social.APPLE;
-        }
-        Optional<Member> checkMember = memberRepository.findBySocialIdAndSocial(socialId, social);
+        String socialCode = getSocialCode(provider, oauthRequest);
+        Social social = getSocial(provider);
+        Optional<Member> checkMember = memberRepository.findBySocialIdAndSocial(socialCode, social);
 
         if (checkMember.isPresent()) {
-            HttpHeaders httpHeaders = new HttpHeaders();
-            TokenResponseDto tokenResponseDTO = tokenProvider.generateToken(socialId, checkMember.get().getRole().name());
-            httpHeaders.add("Authorization", "Bearer " + tokenResponseDTO.getAccessToken());
-            checkMember.get().setFcmToken(
-                    oauthRequest.getFcmToken() == null
-                            ? null
-                            : oauthRequest.getFcmToken()
-            );
+            TokenResponseDto tokenResponseDTO = tokenProvider.generateToken(socialCode, checkMember.get().getRole().name());
+            HttpHeaders httpHeaders = makeHttpHeaders(tokenResponseDTO);
 
-            log.info("로그인 성공");
+            checkMember.get().setFcmToken(checkFcmToken(oauthRequest));
 
             return new ResponseEntity<>(CommonApiResponse.of(MemberResponseDto.ofCheck(checkMember.get(), true, tokenResponseDTO)), httpHeaders, HttpStatus.OK);
         } else {
             return ResponseEntity.ok(CommonApiResponse.of(MemberResponseDto.ofSignUp(false)));
         }
+    }
+
+    // fcmToken null 체크
+    public String checkFcmToken(OauthRequest oauthRequest) {
+        return oauthRequest.getFcmToken() == null
+                ? null
+                : oauthRequest.getFcmToken();
+    }
+
+    // Http Header 정보 생성
+    public HttpHeaders makeHttpHeaders(TokenResponseDto tokenResponseDTO) {
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add(AUTHORIZATION, BEARER + tokenResponseDTO.getAccessToken());
+
+        return httpHeaders;
+    }
+
+    // 소셜 판별
+    public Social getSocial(String provider) {
+        return provider.equals(KAKAO)
+                ? Social.KAKAO
+                : Social.APPLE;
+    }
+
+    // 소셜 고유번호 가져오기
+    public String getSocialCode(String provider, OauthRequest oauthRequest)
+            throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeySpecException, JsonProcessingException {
+        String socialCode = "";
+
+        if (provider.equals(KAKAO)) {
+            socialCode = getKakaoUser(oauthRequest.getAccessToken()).getAuthenticationCode();
+        } else {
+            socialCode = appleUtils.verifyPublicKey(oauthRequest.getAccessToken()).get("sub").toString();
+        }
+
+        return socialCode;
     }
 
     // 회원가입(소셜)
