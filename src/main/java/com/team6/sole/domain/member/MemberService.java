@@ -1,14 +1,9 @@
 package com.team6.sole.domain.member;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.team6.sole.domain.home.entity.Category;
-import com.team6.sole.domain.home.entity.Gps;
 import com.team6.sole.domain.member.dto.*;
 import com.team6.sole.domain.member.entity.Accept;
-import com.team6.sole.domain.member.entity.FollowInfo;
 import com.team6.sole.domain.member.entity.Member;
-import com.team6.sole.domain.member.entity.NotificationInfo;
-import com.team6.sole.domain.member.model.Role;
 import com.team6.sole.domain.member.model.Social;
 import com.team6.sole.domain.scrap.ScrapFolderRespository;
 import com.team6.sole.domain.scrap.entity.ScrapFolder;
@@ -24,7 +19,6 @@ import com.team6.sole.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,8 +31,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -63,7 +55,7 @@ public class MemberService {
     @SneakyThrows // 명시적 예외처리(lombok)
     @Transactional
     public ResponseEntity<CommonApiResponse<MemberResponseDto>> checkMember(String provider, OauthRequest oauthRequest) {
-        String socialCode = getSocialCode(provider, oauthRequest);
+        String socialCode = getSocialCode(provider, oauthRequest.getAccessToken());
         Social social = getSocial(provider);
         Optional<Member> checkMember = memberRepository.findBySocialIdAndSocial(socialCode, social);
 
@@ -102,14 +94,14 @@ public class MemberService {
     }
 
     // 소셜 고유번호 가져오기
-    public String getSocialCode(String provider, OauthRequest oauthRequest)
+    public String getSocialCode(String provider, String socialAccessToken)
             throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeySpecException, JsonProcessingException {
         String socialCode = "";
 
         if (provider.equals(KAKAO)) {
-            socialCode = getKakaoUser(oauthRequest.getAccessToken()).getAuthenticationCode();
+            socialCode = getKakaoUser(socialAccessToken).getAuthenticationCode();
         } else {
-            socialCode = appleUtils.verifyPublicKey(oauthRequest.getAccessToken()).get("sub").toString();
+            socialCode = appleUtils.verifyPublicKey(socialAccessToken).get("sub").toString();
         }
 
         return socialCode;
@@ -123,86 +115,24 @@ public class MemberService {
             throw new BadRequestException(ErrorCode.MEMBER_ALREADY_EXIST);
         }
 
-        String socialId = "";
-        Social social = null;
+        String socialCode = getSocialCode(provider, memberRequestDto.getAccessToken());
+        Social social = getSocial(provider);
+        String password = passwordEncoder.encode("social");
+        String profileImgUrl = multipartFile == null 
+                        ? null 
+                        : awsS3Service.uploadImage(multipartFile, "member");
 
-        if (provider.equals("kakao")) {
-            socialId = getKakaoUser(memberRequestDto.getAccessToken()).getAuthenticationCode();
-            log.info(socialId);
-            social = Social.KAKAO;
-        } else {
-            socialId = appleUtils.verifyPublicKey(memberRequestDto.getAccessToken()).get("sub").toString();
-            log.info(socialId);
-            social = Social.APPLE;
-        }
-
-        Accept accept = Accept.builder()
-                .serviceAccepted(memberRequestDto.isServiceAccepted())
-                .infoAccepted(memberRequestDto.isInfoAccepted())
-                .marketingAccepted(memberRequestDto.isMarketingAccepted())
-                .locationAccepted(memberRequestDto.isLocationAccepted())
-                .build();
+        Accept accept = MemberRequestDto.acceptToEntity(memberRequestDto);
         acceptRepository.save(accept);
 
-        Member member = Member.builder()
-                .socialId(socialId)
-                .password(passwordEncoder.encode("social"))
-                .nickname(memberRequestDto.getNickname())
-                .social(social)
-                .role(Role.ROLE_USER)
-                .profileImgUrl(
-                        multipartFile == null
-                                ? null
-                                : awsS3Service.uploadImage(multipartFile, "member"))
-                .accept(accept)
-                .favoriteCategory(
-                        Category.builder()
-                                .placeCategories(memberRequestDto.getPlaceCategories())
-                                .withCategories(memberRequestDto.getWithCategories())
-                                .transCategories(memberRequestDto.getTransCategories())
-                                .build()
-                )
-                .description(null)
-                .followInfo(
-                        FollowInfo.builder()
-                                .follower(0)
-                                .following(0)
-                                .build()
-                )
-                .notificationInfo(
-                        NotificationInfo.builder()
-                                .activityNot(true)
-                                .marketingNot(memberRequestDto.isMarketingAccepted())
-                                .build()
-                )
-                .fromFollows(new ArrayList<>())
-                .toFollows(new ArrayList<>())
-                .fcmToken(
-                        memberRequestDto.getFcmToken() == null
-                                ? null
-                                : memberRequestDto.getFcmToken())
-                .currentGps(
-                        Gps.builder()
-                                .address("서울 마포구 마포대로 122")
-                                .latitude(37.5453021) // 위도(x)
-                                .longitude(126.952499) // 경도(y)
-                                .distance(0)
-                                .build()
-                )
-                .build();
+        Member member = MemberRequestDto.memberToEntity(socialCode, password, social, profileImgUrl, accept, memberRequestDto);
         memberRepository.saveAndFlush(member);
-        
-        ScrapFolder scrapFolder = ScrapFolder.builder()
-                .scrapFolderName("기본 폴더")
-                .member(member)
-                .build();
+
+        ScrapFolder scrapFolder = MemberRequestDto.scrapFolderToEntity(member, memberRequestDto);
         scrapFolderRespository.saveAndFlush(scrapFolder);
 
-        HttpHeaders httpHeaders = new HttpHeaders();
-        TokenResponseDto tokenResponseDTO = tokenProvider.generateToken(socialId, member.getRole().name());
-        httpHeaders.add("Authorization", "Bearer " + tokenResponseDTO.getAccessToken());
-
-        log.info("회원가입 성공");
+        TokenResponseDto tokenResponseDTO = tokenProvider.generateToken(socialCode, member.getRole().name());
+        HttpHeaders httpHeaders = makeHttpHeaders(tokenResponseDTO);
 
         return new ResponseEntity<>(CommonApiResponse.of(MemberResponseDto.of(member, tokenResponseDTO)), httpHeaders, HttpStatus.OK);
     }
@@ -216,11 +146,8 @@ public class MemberService {
             throw new BadRequestException(ErrorCode.INVALID_ACCESS_TOKEN);
         }
 
-
         try {
             socialId = tokenProvider.parseClaims(accessToken).getSubject();
-            log.info(refreshToken);
-            log.info(redisService.getValues(socialId));
         } catch (Exception e) {
             throw new BadRequestException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
@@ -231,9 +158,7 @@ public class MemberService {
                 .orElseThrow(() -> new NotFoundException(ErrorCode.MEMBER_NOT_FOUND));
 
         TokenResponseDto tokenResponseDto = tokenProvider.generateToken(socialId, member.getRole().name());
-
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add("Authorization", "Bearer " + tokenResponseDto.getAccessToken());
+        HttpHeaders httpHeaders = makeHttpHeaders(tokenResponseDto);
 
         return new ResponseEntity<>(CommonApiResponse.of(tokenResponseDto), httpHeaders, HttpStatus.OK);
     }
@@ -297,7 +222,7 @@ public class MemberService {
         try {
             return webClient.post()
                     .uri(getUserURL)
-                    .header("Authorization", "Bearer " + accessToken)
+                    .header(AUTHORIZATION, BEARER + accessToken)
                     .retrieve()
                     .bodyToMono(KakaoUserDto.class)
                     .block();
