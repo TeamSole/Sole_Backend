@@ -11,7 +11,6 @@ import com.team6.sole.domain.scrap.dto.ScrapFolderResponseDto;
 import com.team6.sole.domain.scrap.dto.ScrapFolderRequestDto;
 import com.team6.sole.domain.scrap.entity.ScrapFolder;
 import com.team6.sole.global.error.ErrorCode;
-import com.team6.sole.global.error.exception.BadRequestException;
 import com.team6.sole.global.error.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 

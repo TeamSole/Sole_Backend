@@ -45,7 +45,6 @@ public class MemberService {
     private final TokenProvider tokenProvider;
     private final WebClient webClient;
     private final AppleUtils appleUtils;
-    private final RedisService redisService;
 
     private static final String KAKAO = "kakao";
     private static final String AUTHORIZATION = "Authorization";
