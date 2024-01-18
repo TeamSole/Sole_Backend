@@ -18,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpServerErrorException;
 
@@ -34,6 +35,10 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TokenProvider implements InitializingBean {
     private final RedisService redisService;
+    private final PasswordEncoder passwordEncoder;
+
+    public static final String AUTHORIZATION = "Authorization";
+    public static final String BEARER = "Bearer ";
 
     private final Logger logger = LoggerFactory.getLogger(TokenProvider.class);
 
@@ -223,5 +228,9 @@ public class TokenProvider implements InitializingBean {
         } catch (ExpiredJwtException e) {
             return e.getClaims();
         }
+    }
+
+    public String makeStringEncoded(String string) {
+        return passwordEncoder.encode(string);
     }
 }
