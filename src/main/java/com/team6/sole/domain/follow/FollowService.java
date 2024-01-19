@@ -1,5 +1,14 @@
 package com.team6.sole.domain.follow;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.team6.sole.domain.follow.dto.FollowDetailResponseDto;
 import com.team6.sole.domain.follow.dto.FollowInfoResponseDto;
 import com.team6.sole.domain.follow.dto.FollowResponseDto;
@@ -15,17 +24,9 @@ import com.team6.sole.domain.member.MemberRepository;
 import com.team6.sole.domain.member.entity.Member;
 import com.team6.sole.global.error.ErrorCode;
 import com.team6.sole.global.error.exception.BadRequestException;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -41,31 +42,40 @@ public class FollowService {
     // 팔로잉하는 사람들 작성한 코스 보기
     @Transactional(readOnly = true)
     public List<FollowDetailResponseDto> showFollowingCourses(Member member) {
-        List<Member> followings = followRepository.findByFromMember_SocialId(member.getSocialId()).stream()
-                .map(Follow::getToMember)
-                .collect(Collectors.toList());
+        List<Member> followingMembers = showFollwingMembers(member.getSocialId());
+        List<Course> followingsCourses = courseRepository.findByWriterIn(followingMembers);
 
-        List<Course> followingsCourses = courseRepository.findByWriterIn(followings);
+        return followingCoursesToDto(member, followingsCourses);
+    }
 
+    // Entity To Dto
+    public List<FollowDetailResponseDto> followingCoursesToDto(Member member, List<Course> followingsCourses) {
         return followingsCourses.stream()
                 .map(course -> FollowDetailResponseDto.of(
                         course.getWriter(),
-                        courseMemberRepository.existsByMemberAndCourse_CourseId(
-                                member,
-                                course.getCourseId()
-                        ),
+                        isCourseScrap(member, course.getCourseId()),
                         course))
                 .collect(Collectors.toList());
+    }
+
+    // 팔로잉하는 사람들 보기
+    public List<Member> showFollwingMembers(String socialId) {
+        return followRepository.findByFromMember_SocialId(socialId).stream()
+                .map(Follow::getToMember)
+                .collect(Collectors.toList());
+    }
+
+    // 팔로잉한 사람들의 코스들 중 스크랩한 코스 보기
+    public Boolean isCourseScrap(Member member, Long courseId) {
+        return courseMemberRepository.existsByMemberAndCourse_CourseId(member, courseId);
     }
 
     // 팔로잉 보기
     @Transactional(readOnly = true)
     public List<FollowResponseDto> showFollowings(Member member) {
-        List<Follow> followings = followRepository.findByFromMember_SocialId(member.getSocialId());
+        List<Follow> followingMembers = followRepository.findByFromMember_SocialId(member.getSocialId());
 
-        return followings.stream()
-                .map(FollowResponseDto::ofFollowing)
-                .collect(Collectors.toList());
+        return FollowResponseDto.of(followingMembers);
     }
 
     // 팔로워 보기
@@ -73,13 +83,23 @@ public class FollowService {
     public List<FollowResponseDto> showFollowers(Member member) {
         List<Follow> followers = followRepository.findByToMember_SocialId(member.getSocialId());
 
+        return followerCoursesToDto(member, followers);
+    }
+
+    // Entity To Dto
+    public List<FollowResponseDto> followerCoursesToDto(Member member, List<Follow> followers) {
         return followers.stream()
-                .map(follower -> FollowResponseDto.ofFollower(
+                .map(follower -> FollowResponseDto.of(
                         follower,
-                        followRepository.existsByFromMember_SocialIdAndToMember_SocialId(member.getSocialId(), follower.getFromMember().getSocialId())
-                                ? FollowStatus.FOLLOWING
-                                : FollowStatus.NOT_FOLLOW))
+                        isFollow(member, follower)))
                 .collect(Collectors.toList());
+    }
+
+    // 팔로워들의 팔로잉 여부
+    public FollowStatus isFollow(Member member, Follow follower) {
+        return followRepository.existsByFromMember_SocialIdAndToMember_SocialId(member.getSocialId(), follower.getFromMember().getSocialId())
+                ? FollowStatus.FOLLOWING
+                : FollowStatus.NOT_FOLLOW;
     }
 
     // 팔로잉 상세정보
