@@ -3,6 +3,8 @@ package com.team6.sole.domain.follow.dto;
 import com.team6.sole.domain.follow.entity.Follow;
 import com.team6.sole.domain.follow.model.FollowStatus;
 import com.team6.sole.domain.member.dto.MemberResponseDto;
+import com.team6.sole.domain.member.entity.Member;
+
 import lombok.*;
 
 import java.util.List;
@@ -59,5 +61,12 @@ public class FollowResponseDto {
         return followings.stream()
                 .map(FollowResponseDto::of)
                 .collect(Collectors.toList());
+    }
+
+    public static Follow followToEntity(Member fromMember, Member toMember) {
+        return Follow.builder()
+            .fromMember(fromMember)
+            .toMember(toMember)
+            .build();
     }
 }
