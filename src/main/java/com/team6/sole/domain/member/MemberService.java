@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -48,6 +49,7 @@ public class MemberService {
     private final AcceptRepository acceptRepository;
     private final AwsS3ServiceImpl awsS3Service;
     private final TokenProvider tokenProvider;
+    private final PasswordEncoder passwordEncoder;
     private final KakaoUtils kakaoUtils;
     private final AppleUtils appleUtils;  
 
@@ -117,7 +119,7 @@ public class MemberService {
 
         String socialCode = getSocialCode(provider, memberRequestDto.getAccessToken());
         Social social = getSocial(provider);
-        String password = tokenProvider.makeStringEncoded("social");
+        String password = passwordEncoder.encode("social");
         String profileImgUrl = makeProfileImgUrl(multipartFile);
 
         // 약관동의
