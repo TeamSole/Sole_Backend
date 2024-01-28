@@ -52,13 +52,23 @@ public class HistoryService {
             return null;
         }
 
-        List<String> regions = courses.stream()
-                .map(course -> course.getPlaces().get(0))
-                .map(Place::getGps)
-                .map(Gps::getAddress)
-                .map(address -> address.substring(0, address.indexOf("구") + 1))
-                .collect(Collectors.toList());
+        List<String> regions = getRegionsByCourses(courses);
 
+        HashMap<String, Integer> dic = makeAllRegions(regions);
+
+        return makeMostRegion(dic);
+    }
+
+    public List<String> getRegionsByCourses(List<Course> courses) {
+        return courses.stream()
+            .map(course -> course.getPlaces().get(0))
+            .map(Place::getGps)
+            .map(Gps::getAddress)
+            .map(address -> address.substring(0, address.indexOf("구") + 1))
+        .collect(Collectors.toList());
+    }
+
+    public HashMap<String, Integer> makeAllRegions(List<String> regions) {
         HashMap<String, Integer> dic = new HashMap<>();
         for (String region : regions) {
             int x = 1;
@@ -71,11 +81,15 @@ public class HistoryService {
             dic.put(region, x);
         }
 
+        return dic;
+    }
+
+    public String makeMostRegion(HashMap<String, Integer> dic) {
         return dic.entrySet().stream()
-                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                .map(Map.Entry::getKey)
-                .limit(1)
-                .collect(Collectors.toList()).get(0);
+            .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+            .map(Map.Entry::getKey)
+            .limit(1)
+            .collect(Collectors.toList()).get(0);
     }
 
     // 장소 카테고리 최빈값(mapToSet)
@@ -84,6 +98,12 @@ public class HistoryService {
             return Collections.emptySet();
         }
 
+        HashMap<PlaceCategory, Integer> dic = makeAllPlaceCategories(placeCategories);
+
+        return makeMostPlaceCategory(dic);
+    }
+
+    public HashMap<PlaceCategory, Integer> makeAllPlaceCategories(List<PlaceCategory> placeCategories) {
         HashMap<PlaceCategory, Integer> dic = new HashMap<>();
         for (PlaceCategory placeCategory : placeCategories) {
             int x = 1;
@@ -96,7 +116,10 @@ public class HistoryService {
             dic.put(placeCategory, x);
         }
 
-        //④
+        return dic;
+    }
+
+    public Set<PlaceCategory> makeMostPlaceCategory(HashMap<PlaceCategory, Integer> dic) {
         return dic.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .map(Map.Entry::getKey)
@@ -110,6 +133,12 @@ public class HistoryService {
             return Collections.emptySet();
         }
 
+        HashMap<TransCategory, Integer> dic = makeAllTransCategories(transCategories);
+
+        return makeMostTransCategory(dic);
+    }
+
+    public HashMap<TransCategory, Integer> makeAllTransCategories(List<TransCategory> transCategories) {
         HashMap<TransCategory, Integer> dic = new HashMap<>();
         for (TransCategory transCategory : transCategories) {
             int x = 1;
@@ -122,7 +151,10 @@ public class HistoryService {
             dic.put(transCategory, x);
         }
 
-        //④
+        return dic;
+    }
+
+    public Set<TransCategory> makeMostTransCategory(HashMap<TransCategory, Integer> dic) {
         return dic.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                 .map(Map.Entry::getKey)
