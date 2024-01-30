@@ -20,7 +20,6 @@ import com.team6.sole.global.error.exception.NotFoundException;
 import com.team6.sole.infra.direction.DirectionService;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -28,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,7 +36,6 @@ import java.util.stream.Stream;
 import static com.team6.sole.infra.direction.DirectionService.calculateDistance;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class HomeService {
     private final ScrapFolderRespository scrapFolderRespository;
@@ -56,17 +55,19 @@ public class HomeService {
     // 현재 위치 설정
     @Transactional
     public GpsResponseDto setCurrentGps(Member member, GpsReqeustDto gpsRequestDto) {
-        String address = convertAdress(gpsRequestDto.getLatitude(), gpsRequestDto.getLongitude());
-        int idx = address.indexOf("국");
+        String rawAddress = convertAdress(gpsRequestDto.getLatitude(), gpsRequestDto.getLongitude());
 
-        member.setCurrentGps(
-                Gps.builder()
-                        .address(address.substring(idx + 2))
-                        .latitude(gpsRequestDto.getLatitude())
-                        .longitude(gpsRequestDto.getLongitude())
-                        .build());
+        Gps gps = GpsReqeustDto.gpsToEntity(makeRawAddressToAddress(rawAddress), gpsRequestDto);
+
+        member.setCurrentGps(gps);
 
         return GpsResponseDto.of(member);
+    }
+
+    public String makeRawAddressToAddress(String rawAddress) {
+        int idx = rawAddress.indexOf("국");
+
+        return rawAddress.substring(idx + 2);
     }
 
     // 현재 위치 보기
@@ -80,17 +81,13 @@ public class HomeService {
     public List<RecommendCourseResponseDto> showRecommendTest(Member member) {
         List<Course> recommendCourses = directionService.buildCourses(member.getCurrentGps());
 
-        return recommendCourses.stream()
-                .map(RecommendCourseResponseDto::of)
-                .collect(Collectors.toList());
+        return RecommendCourseResponseDto.of(recommendCourses);
     }
 
     // 인기 코스 추천(7개 fix)
     @Transactional(readOnly = true)
     public List<RecommendCourseResponseDto> showRecommendCourses(Member member) {
-        return member.getRecommendCourses().stream()
-                .map(RecommendCourseResponseDto::of)
-                .collect(Collectors.toList());
+        return RecommendCourseResponseDto.of(member.getRecommendCourses());
     }
 
     // 홈 보기(5개 + 5n)
@@ -102,27 +99,41 @@ public class HomeService {
             return Collections.emptyList();
         }
 
-        // 선호하는 카테고리 findAll
-        List<Course> courses = courseCustomRepository
-                .findAllByCategory(
-                        courseId,
-                        member.getFavoriteCategory().getPlaceCategories(),
-                        member.getFavoriteCategory().getWithCategories(),
-                        member.getFavoriteCategory().getTransCategories());
+        List<Course> courses = findAllByCategory(courseId, member);
 
-        // 다음 페이지 존재여부
-        boolean finalPage = courses.size() - 1 != -1
+        return showHomeCourses(courses, member);
+    }
+
+    // 선호하는 카테고리 findAll
+    public List<Course> findAllByCategory(Long courseId, Member member) {
+        return courseCustomRepository.findAllByCategory(
+                    courseId,
+                    member.getFavoriteCategory().getPlaceCategories(),
+                    member.getFavoriteCategory().getWithCategories(),
+                    member.getFavoriteCategory().getTransCategories());
+    }
+
+    // 마지막 페이지 판별(TODO -> PageDTO 클래스 따로파서 static method로)
+    public Boolean isFinalPage(List<Course> courses, Member member) {
+        return courses.size() - 1 != -1 
                 && courseCustomRepository.findAllByCategory(courses.get(courses.size() - 1).getCourseId(),
                 member.getFavoriteCategory().getPlaceCategories(),
                 member.getFavoriteCategory().getWithCategories(),
                 member.getFavoriteCategory().getTransCategories()).isEmpty();
+    }
 
-        // 좋아요 여부 추가 및 dto 변환
+    // 팔로잉한 사람들의 코스들 중 스크랩한 코스(T/F)
+    public Boolean isCourseScrap(Member member, Long courseId) {
+        return courseMemberRepository.existsByMemberAndCourse_CourseId(member, courseId);
+    }
+
+    // 선호 코스 모아보기
+    public List<HomeResponseDto> showHomeCourses(List<Course> courses, Member member) {
         return courses.stream()
                 .map(course -> HomeResponseDto.of(
                         course,
-                        courseMemberRepository.existsByMemberAndCourse_CourseId(member, course.getCourseId()),
-                        finalPage))
+                        isCourseScrap(member, course.getCourseId()),
+                        isFinalPage(courses, member)))
                 .collect(Collectors.toList());
     }
 
@@ -134,41 +145,70 @@ public class HomeService {
         // 검색어로 코스 찾기
         List<Course> searchCourses = courseCustomRepository.findAllByTitleContaining(courseId, searchWord, placeCategories, transCategories, withCategories, regions);
 
-        // 다음 페이지 존재여부
-        boolean finalPage = searchCourses.size() - 1 != -1 && courseCustomRepository.findAllByTitleContaining(
-                searchCourses.get(searchCourses.size() - 1).getCourseId(),
-                searchWord, placeCategories, transCategories, withCategories, regions).isEmpty();
+        Boolean isFinalPage = isFinalPage(searchCourses, searchWord, placeCategories, transCategories, withCategories, regions);
 
-        return searchCourses.stream()
+        return showSearchedCourses(searchCourses, member, isFinalPage);
+    }
+
+    // 마지막 페이지 판별(TODO -> PageDTO 클래스 따로파서 static method로)
+    public Boolean isFinalPage(List<Course> searchCourses, String searchWord, 
+                                Set<PlaceCategory> placeCategories, Set<TransCategory> transCategories, Set<WithCategory> withCategories,
+                                List<Region> regions) {
+        return searchCourses.size() - 1 != -1 
+                && courseCustomRepository.findAllByTitleContaining(
+            searchCourses.get(searchCourses.size() - 1).getCourseId(),
+            searchWord, placeCategories, transCategories, withCategories, regions).isEmpty();
+    }
+
+    // 선호 코스 모아보기(검색 포함)
+    public List<HomeResponseDto> showSearchedCourses(List<Course> courses, Member member, Boolean isFinalPage) {
+        return courses.stream()
                 .map(course -> HomeResponseDto.of(
                         course,
-                        // 스크랩 여부
-                        courseMemberRepository.existsByMemberAndCourse_CourseId(
-                                member,
-                                course.getCourseId()),
-                        // 마지막 페이지여부
-                        finalPage))
+                        isCourseScrap(member, course.getCourseId()),
+                        isFinalPage))
                 .collect(Collectors.toList());
     }
-    
+
     // 코스 등록
     @SneakyThrows
     @Transactional
     public CourseResponseDto makeCourse(Member writer, CourseRequestDto courseRequestDto,
                                         Map<String, List<MultipartFile>> courseImagesMap) {
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-        log.info(String.valueOf(courseImagesMap.size()));
+        List<Gps> locations = showLatAndLongsByCourses(courseRequestDto);
+        double totalDistance = caculateTotalDistance(locations);
 
-        // 장소별 위, 경도 가져오기
-        List<Gps> locations = courseRequestDto.getPlaceRequestDtos().stream()
+        String thumbnailUrl = checkThumbnailUrl(courseImagesMap);
+        Date startDate = convertStringToDate(courseRequestDto.getDate());
+        Region region = makeRegion(makeShortenAddress(courseRequestDto.getPlaceRequestDtos().get(0).getAddress()));
+        int duration = makeDuration(courseRequestDto);
+
+        Course course = CourseRequestDto.courseToEntity(thumbnailUrl, totalDistance, startDate, region, duration, writer, courseRequestDto);
+        courseRepository.saveAndFlush(course);
+
+        // 장소 저장
+        for (PlaceRequestDto placeRequestDto : courseRequestDto.getPlaceRequestDtos()) {
+            Place place = PlaceRequestDto.placeToEntity(checkPlaceImgUrls(courseImagesMap, placeRequestDto), placeRequestDto, course);
+            placeRepository.save(place);
+            course.putPlace(place);
+        }
+
+        return CourseResponseDto.of(course);
+    }
+
+    // 장소별 위, 경도 가져오기
+    public List<Gps> showLatAndLongsByCourses(CourseRequestDto courseRequestDto) {
+        return courseRequestDto.getPlaceRequestDtos().stream()
                 .map(placeRequestDto -> Gps.builder()
                         .latitude(placeRequestDto.getLatitude())
                         .longitude(placeRequestDto.getLongitude())
                         .build())
                 .collect(Collectors.toList());
-        
-        // 코스 최단거리 합 계산
-        double totalDistance = 0;
+    }
+
+    // 코스 최단거리 합 계산
+    public Double caculateTotalDistance(List<Gps> locations) {
+        double totalDistance = 0.0;
         for (int i = 0; i < locations.size(); i++) {
             if (i == locations.size() - 1) {
                 break;
@@ -179,51 +219,33 @@ public class HomeService {
                     end.getLatitude(), end.getLongitude());
         }
 
-        // 코스 저장
-        Course course = Course.builder()
-                .thumbnailUrl(courseImagesMap.get("thumbnailImg") == null
-                        ? null
-                        : awsS3Service.uploadImage(courseImagesMap.get("thumbnailImg").get(0), "course"))
-                .scrapCount(0)
-                .title(courseRequestDto.getTitle())
-                .description(courseRequestDto.getDescription())
-                .startDate(formatter.parse(courseRequestDto.getDate()))
-                .duration(courseRequestDto.getPlaceRequestDtos().stream()
-                        .mapToInt(PlaceRequestDto::getDuration) 
-                        .sum())
-                .distance(totalDistance)
-                .region(makeRegion(
-                        makeShortenAddress(courseRequestDto.getPlaceRequestDtos().get(0).getAddress())))
-                .placeCategories(courseRequestDto.getPlaceCategories())
-                .withCategories(courseRequestDto.getWithCategories())
-                .transCategories(courseRequestDto.getTransCategories())
-                .writer(writer)
-                .places(new ArrayList<>())
-                .build();
-        courseRepository.saveAndFlush(course);
+        return totalDistance;
+    }
 
-        // 장소 저장
-        for (PlaceRequestDto placeRequestDto : courseRequestDto.getPlaceRequestDtos()) {
-            Place place = Place.builder()
-                    .placeName(placeRequestDto.getPlaceName())
-                    .duration(placeRequestDto.getDuration())
-                    .description(placeRequestDto.getDescription())
-                    .gps(
-                            Gps.builder()
-                                    .address(placeRequestDto.getAddress())
-                                    .latitude(placeRequestDto.getLatitude())
-                                    .longitude(placeRequestDto.getLongitude())
-                                    .build())
-                    .placeImgUrls(courseImagesMap.get(placeRequestDto.getPlaceName()) == null
-                            ? null
-                            : awsS3Service.uploadImage(courseImagesMap.get(placeRequestDto.getPlaceName()), "place"))
-                    .course(course)
-                    .build();
-            placeRepository.save(place);
-            course.putPlace(place);
-        }
+    public String checkThumbnailUrl(Map<String, List<MultipartFile>> courseImagesMap) {
+        return courseImagesMap.get("thumbnailImg") == null
+                ? null
+                : awsS3Service.uploadImage(courseImagesMap.get("thumbnailImg").get(0), "course");
+    }
 
-        return CourseResponseDto.of(course);
+    // 시작날짜 String -> Date(형변환)
+    public Date convertStringToDate(String date) throws ParseException {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+
+        return formatter.parse(date);
+    }
+
+    // 장소간 이동시간 구하기
+    public int makeDuration(CourseRequestDto courseRequestDto) {
+        return courseRequestDto.getPlaceRequestDtos().stream()
+                .mapToInt(PlaceRequestDto::getDuration) 
+                .sum();
+    }
+
+    public List<String> checkPlaceImgUrls(Map<String, List<MultipartFile>> courseImagesMap, PlaceRequestDto placeRequestDto) {
+        return courseImagesMap.get(placeRequestDto.getPlaceName()) == null
+                ? null
+                : awsS3Service.uploadImage(courseImagesMap.get(placeRequestDto.getPlaceName()), "place");
     }
     
     // 코스 상세 조회
