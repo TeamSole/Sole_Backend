@@ -1,6 +1,5 @@
 package com.team6.sole.domain.notice;
 
-import com.team6.sole.domain.follow.event.FollowEvent;
 import com.team6.sole.domain.member.MemberRepository;
 import com.team6.sole.domain.member.entity.Member;
 import com.team6.sole.domain.member.model.Role;

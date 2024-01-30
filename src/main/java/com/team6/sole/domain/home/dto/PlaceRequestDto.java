@@ -1,5 +1,10 @@
 package com.team6.sole.domain.home.dto;
 
+import java.util.List;
+
+import com.team6.sole.domain.home.entity.Course;
+import com.team6.sole.domain.home.entity.Place;
+
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -27,4 +32,15 @@ public class PlaceRequestDto {
 
     @ApiModelProperty(value = "경도", example = "23.22")
     private double longitude;
+
+    public static Place placeToEntity(List<String> checkplaceImgUrls, PlaceRequestDto placeRequestDto, Course course) {
+        return Place.builder()
+                .placeName(placeRequestDto.getPlaceName())
+                .duration(placeRequestDto.getDuration())
+                .description(placeRequestDto.getDescription())
+                .gps(GpsReqeustDto.gpsToEntity(placeRequestDto))
+                .placeImgUrls(checkplaceImgUrls)
+                .course(course)
+        .build();
+    }
 }
