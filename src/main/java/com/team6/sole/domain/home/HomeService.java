@@ -14,6 +14,7 @@ import com.team6.sole.domain.member.entity.Member;
 import com.team6.sole.domain.scrap.ScrapFolderRespository;
 import com.team6.sole.domain.scrap.entity.ScrapFolder;
 import com.team6.sole.global.config.s3.AwsS3ServiceImpl;
+import com.team6.sole.global.config.security.oauth.GoogleUtils;
 import com.team6.sole.global.error.ErrorCode;
 import com.team6.sole.global.error.exception.BadRequestException;
 import com.team6.sole.global.error.exception.NotFoundException;
@@ -46,16 +47,13 @@ public class HomeService {
     private final PlaceRepository placeRepository;
     private final DeclarationRepository declarationRepository;
     private final AwsS3ServiceImpl awsS3Service;
-    private final WebClient webClient;
+    private final GoogleUtils googleUtils;
     private final DirectionService directionService;
-
-    @Value("${GOOGLE.APP_KEY}")
-    private String APP_KEY;
     
     // 현재 위치 설정
     @Transactional
     public GpsResponseDto setCurrentGps(Member member, GpsReqeustDto gpsRequestDto) {
-        String rawAddress = convertAdress(gpsRequestDto.getLatitude(), gpsRequestDto.getLongitude());
+        String rawAddress = googleUtils.convertAdress(gpsRequestDto.getLatitude(), gpsRequestDto.getLongitude());
 
         Gps gps = GpsReqeustDto.gpsToEntity(makeRawAddressToAddress(rawAddress), gpsRequestDto);
 
@@ -254,13 +252,21 @@ public class HomeService {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.COURSE_NOT_FOUND));
 
-        boolean checkWriter = course.getWriter().getMemberId().equals(member.getMemberId());
+        boolean checkWriter = isWriter(course, member);
 
-        FollowStatus followStatus = followRepository.existsByFromMember_MemberIdAndToMember_MemberId(member.getMemberId(), course.getWriter().getMemberId())
-                ? FollowStatus.FOLLOWING
-                : FollowStatus.NOT_FOLLOW;
+        FollowStatus followStatus = checkFollowStatus(course, member);
 
         return CourseDetailResponseDto.of(course, checkWriter, followStatus);
+    }
+
+    public Boolean isWriter(Course course, Member member) {
+        return course.getWriter().getMemberId().equals(member.getMemberId());
+    }
+
+    public FollowStatus checkFollowStatus(Course course, Member member) {
+        return followRepository.existsByFromMember_MemberIdAndToMember_MemberId(member.getMemberId(), course.getWriter().getMemberId())
+                ? FollowStatus.FOLLOWING
+                : FollowStatus.NOT_FOLLOW;
     }
 
     // 코스 업데이트
@@ -271,92 +277,75 @@ public class HomeService {
                                        CourseUpdateRequestDto courseUpdateRequestDto) {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.COURSE_NOT_FOUND));
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
-        // 장소
+        // 장소 업데이트
         for (PlaceUpdateRequestDto placeUpdateRequestDto : courseUpdateRequestDto.getPlaceUpdateRequestDtos()) {
             if (placeUpdateRequestDto.getPlaceId() == null) {
-                Place place = Place.builder()
-                        .placeName(placeUpdateRequestDto.getPlaceName())
-                        .duration(placeUpdateRequestDto.getDuration())
-                        .description(placeUpdateRequestDto.getDescription())
-                        .gps(
-                                Gps.builder()
-                                        .address(placeUpdateRequestDto.getAddress())
-                                        .latitude(placeUpdateRequestDto.getLatitude())
-                                        .longitude(placeUpdateRequestDto.getLongitude())
-                                        .build())
-                        .placeImgUrls(placeImages.get(placeUpdateRequestDto.getPlaceName()) == null
-                                ? null
-                                : awsS3Service.uploadImage(placeImages.get(placeUpdateRequestDto.getPlaceName()), "place"))
-                        .course(course)
-                        .build();
+                Place place = PlaceRequestDto.updatePlaceToEntity(checkPlaceImages(placeImages, placeUpdateRequestDto), placeUpdateRequestDto, course);
                 placeRepository.saveAndFlush(place);
                 course.putPlace(place);
             } else {
                 Place place = placeRepository.findById(placeUpdateRequestDto.getPlaceId())
                         .orElseThrow(() -> new NotFoundException(ErrorCode.PLACE_NOT_FOUND));
-                place.modPlace(
-                        placeUpdateRequestDto.getPlaceName(),
-                        placeUpdateRequestDto.getDuration(),
-                        placeUpdateRequestDto.getDescription(),
-                        Gps.builder()
-                                .address(placeUpdateRequestDto.getAddress())
-                                .latitude(placeUpdateRequestDto.getLatitude())
-                                .longitude(placeUpdateRequestDto.getLongitude())
-                                .distance(0.0)
-                                .build());
 
-                place.modPlaceImgUrls(
-                        placeImages.get(placeUpdateRequestDto.getPlaceName()) == null
-                                ? placeUpdateRequestDto.getPlaceImgUrls()
-                                : Stream.of(
-                                        awsS3Service.uploadImage(placeImages.get(placeUpdateRequestDto.getPlaceName()), "place"),
-                                        placeUpdateRequestDto.getPlaceImgUrls())
-                                .flatMap(Collection::stream)
-                                .collect(Collectors.toList()));
+                place.modPlace(placeUpdateRequestDto, PlaceUpdateRequestDto.updateGpsToEntity(placeUpdateRequestDto));
+                place.modPlaceImgUrls(mergePlaceImgUrlsAndUpdateImgUrls(placeImages, placeUpdateRequestDto));
             }
         }
 
-        // 장소별 위, 경도 가져오기
-        List<Gps> locations = courseUpdateRequestDto.getPlaceUpdateRequestDtos().stream()
+        List<Gps> locations = showLatAndLongsByUpdatedCourses(courseUpdateRequestDto);
+        double totalPlaceDistance = caculateTotalDistance(locations);
+        Date startDate = convertStringToDate(courseUpdateRequestDto.getStartDate());
+        int totalDuration = calculateTotalDuration(course);
+        Region region = makeRegion(makeShortenAddress(courseUpdateRequestDto.getPlaceUpdateRequestDtos().get(0).getAddress()));
+
+        // 코스 업데이트
+        course.modCourse(courseUpdateRequestDto, startDate, totalDuration, totalPlaceDistance, region);
+        course.modThumbnailImg(checkUpdatedThumbnailImg(course, placeImages));
+
+        return CourseResponseDto.of(course);
+    }
+
+    public List<String> checkPlaceImages(Map<String, List<MultipartFile>> placeImages, PlaceUpdateRequestDto placeUpdateRequestDto) {
+        return placeImages.get(placeUpdateRequestDto.getPlaceName()) == null
+                ? null
+                : awsS3Service.uploadImage(placeImages.get(placeUpdateRequestDto.getPlaceName()), "place");
+    }
+
+    public List<String> mergePlaceImgUrlsAndUpdateImgUrls(Map<String, List<MultipartFile>> placeImages, PlaceUpdateRequestDto placeUpdateRequestDto) {
+        return Stream.of(
+            awsS3Service.uploadImage(placeImages.get(placeUpdateRequestDto.getPlaceName()), "place"),
+            placeUpdateRequestDto.getPlaceImgUrls())
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
+    }
+
+    public List<String> makeUpdatedPlaceImgUrls(Map<String, List<MultipartFile>> placeImages, PlaceUpdateRequestDto placeUpdateRequestDto) {
+        return placeImages.get(placeUpdateRequestDto.getPlaceName()) == null
+                ? placeUpdateRequestDto.getPlaceImgUrls()
+                : mergePlaceImgUrlsAndUpdateImgUrls(placeImages, placeUpdateRequestDto);
+    }
+
+    // 장소별 위, 경도 가져오기
+    public List<Gps> showLatAndLongsByUpdatedCourses(CourseUpdateRequestDto courseUpdateRequestDto) {
+        return courseUpdateRequestDto.getPlaceUpdateRequestDtos().stream()
                 .map(placeRequestDto -> Gps.builder()
                         .latitude(placeRequestDto.getLatitude())
                         .longitude(placeRequestDto.getLongitude())
                         .build())
                 .collect(Collectors.toList());
+    }
 
-        // 코스 최단거리 합 계산
-        double totalPlaceDistance = 0;
-        for (int i = 0; i < locations.size(); i++) {
-            if (i == locations.size() - 1) {
-                break;
-            }
-            Gps start = locations.get(i);
-            Gps end = locations.get(i + 1);
-            totalPlaceDistance += calculateDistance(start.getLatitude(), start.getLongitude(),
-                    end.getLatitude(), end.getLongitude());
-        }
+    public int calculateTotalDuration(Course course) {
+        return course.getPlaces().stream()
+            .mapToInt(Place::getDuration)
+            .sum();
+    }
 
-        // 코스
-        course.modCourse(
-                courseUpdateRequestDto.getTitle(),
-                formatter.parse(courseUpdateRequestDto.getStartDate()),
-                course.getPlaces().stream()
-                        .mapToInt(Place::getDuration)
-                        .sum(),
-                totalPlaceDistance,
-                makeRegion(makeShortenAddress(courseUpdateRequestDto.getPlaceUpdateRequestDtos().get(0).getAddress())),
-                courseUpdateRequestDto.getPlaceCategories(),
-                courseUpdateRequestDto.getWithCategories(),
-                courseUpdateRequestDto.getTransCategories(),
-                courseUpdateRequestDto.getDescription());
-        course.modThumbnailImg(
-                placeImages.get("thumbnailImg") == null
-                        ? course.getThumbnailUrl()
-                        : awsS3Service.uploadImage(placeImages.get("thumbnailImg").get(0), "course"));
-
-        return CourseResponseDto.of(course);
+    public String checkUpdatedThumbnailImg(Course course, Map<String, List<MultipartFile>> placeImages) {
+        return placeImages.get("thumbnailImg") == null
+                ? course.getThumbnailUrl()
+                : awsS3Service.uploadImage(placeImages.get("thumbnailImg").get(0), "course");
     }
 
     // 코스 삭제
@@ -374,23 +363,28 @@ public class HomeService {
 
         // 이미 스크랩되어있다면 취소, 아니면 스크랩
         if (checkCourseMember.isPresent()) {
-            courseMemberRepository.deleteByCourse_CourseIdAndMember(courseId, member);
-            checkCourseMember.get().getCourse().removeScrapCount();
+            unscrap(courseId, member, checkCourseMember.get());
         } else {
             ScrapFolder scrapFolder = scrapFolderRespository.findById(scrapFolderId)
                     .orElseThrow(() -> new NotFoundException(ErrorCode.SCRAP_FOLDER_NOT_FOUND));
+            Course course = courseRepository.findById(courseId)
+                    .orElseThrow(() -> new NotFoundException(ErrorCode.COURSE_NOT_FOUND));
 
-            CourseMember courseMember = CourseMember.builder()
-                    .course(courseRepository.findById(courseId)
-                            .orElseThrow(() -> new NotFoundException(ErrorCode.COURSE_NOT_FOUND)))
-                    .member(member)
-                    .scrapFolder(scrapFolder)
-                    .build();
+            CourseMember courseMember = CourseRequestDto.courseMemberToEntity(course, member, scrapFolder);
             courseMemberRepository.saveAndFlush(courseMember);
 
-            courseMember.getCourse().addScrapCount();
-            courseRepository.saveAndFlush(courseMember.getCourse());
+            scrap(courseMember);
         }
+    }
+
+    public void unscrap(Long courseId, Member member, CourseMember courseMember) {
+        courseMemberRepository.deleteByCourse_CourseIdAndMember(courseId, member);
+        courseMember.getCourse().removeScrapCount();
+    }
+
+    public void scrap(CourseMember courseMember) {
+        courseMember.getCourse().addScrapCount();
+        courseRepository.saveAndFlush(courseMember.getCourse());
     }
     
     // 코스 신고하기
@@ -399,10 +393,7 @@ public class HomeService {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.COURSE_NOT_FOUND));
 
-        Declaration declaration = Declaration.builder()
-                .course(course)
-                .member(member)
-                .build();
+        Declaration declaration = CourseRequestDto.declarationToEntity(course, member)
         declarationRepository.save(declaration);
 
         return "신고가 접수되었습니다.";
@@ -417,11 +408,9 @@ public class HomeService {
     // 선호 카테고리 수정
     @Transactional
     public FavCategoryResponseDto modFavCategory(Member member, FavCategoryRequestDto favCategoryRequestDto) {
-        member.modFavCategory(Category.builder()
-                .placeCategories(favCategoryRequestDto.getPlaceCategories())
-                .withCategories(favCategoryRequestDto.getWithCategories())
-                .transCategories(favCategoryRequestDto.getTransCategories())
-                .build());
+        Category favCategory = CourseRequestDto.categoriesToEntity(favCategoryRequestDto);
+
+        member.modFavCategory(favCategory);
 
         return FavCategoryResponseDto.of(member);
     }
@@ -964,27 +953,5 @@ public class HomeService {
         }
 
         return region;
-    }
-
-    // 현재 위치 좌표 -> 주소 변환
-    @SneakyThrows
-    public String convertAdress(Double latitude, Double longitude) {
-        String getAdressURL = "https://maps.googleapis.com/maps/api/geocode/json";
-
-        try {
-            return Objects.requireNonNull(webClient
-                            .get()
-                            .uri(getAdressURL, builder -> builder
-                                    .queryParam("latlng", latitude + "," + longitude)
-                                    .queryParam("language", "ko")
-                                    .queryParam("key", APP_KEY)
-                                    .build())
-                            .retrieve()
-                            .bodyToMono(GeocodeResponseDto.class)
-                            .block()).getResults()[0].getFormatted_address();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new BadRequestException(ErrorCode.GOOGLE_BAD_REQUEST);
-        }
     }
 }
