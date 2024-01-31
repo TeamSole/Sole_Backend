@@ -8,6 +8,8 @@ import lombok.Setter;
 
 import java.util.List;
 
+import com.team6.sole.domain.home.entity.Gps;
+
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -35,4 +37,12 @@ public class PlaceUpdateRequestDto {
 
     @ApiModelProperty(value = "장소 이미지들", example = "23.22")
     private List<String> placeImgUrls;
+
+    public static Gps updateGpsToEntity(PlaceUpdateRequestDto placeUpdateRequestDto) {
+        return Gps.builder()
+                .address(placeUpdateRequestDto.getAddress())
+                .latitude(placeUpdateRequestDto.getLatitude())
+                .longitude(placeUpdateRequestDto.getLongitude())
+        .build();
+    }
 }

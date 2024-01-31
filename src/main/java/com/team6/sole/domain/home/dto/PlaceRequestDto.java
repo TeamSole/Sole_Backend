@@ -43,4 +43,15 @@ public class PlaceRequestDto {
                 .course(course)
         .build();
     }
+
+    public static Place updatePlaceToEntity(List<String> upadatePlaceImgurls, PlaceUpdateRequestDto placeUpdateRequestDto, Course course) {
+        return Place.builder()
+                .placeName(placeUpdateRequestDto.getPlaceName())
+                .duration(placeUpdateRequestDto.getDuration())
+                .description(placeUpdateRequestDto.getDescription())
+                .gps(PlaceUpdateRequestDto.updateGpsToEntity(placeUpdateRequestDto))
+                .placeImgUrls(upadatePlaceImgurls)
+                .course(course)
+        .build();
+    }
 }

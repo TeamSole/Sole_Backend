@@ -1,11 +1,15 @@
 package com.team6.sole.domain.home.dto;
 
+import com.team6.sole.domain.home.entity.Category;
 import com.team6.sole.domain.home.entity.Course;
+import com.team6.sole.domain.home.entity.Declaration;
+import com.team6.sole.domain.home.entity.relation.CourseMember;
 import com.team6.sole.domain.home.model.Region;
 import com.team6.sole.domain.home.model.PlaceCategory;
 import com.team6.sole.domain.home.model.TransCategory;
 import com.team6.sole.domain.home.model.WithCategory;
 import com.team6.sole.domain.member.entity.Member;
+import com.team6.sole.domain.scrap.entity.ScrapFolder;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AccessLevel;
@@ -60,6 +64,29 @@ public class CourseRequestDto {
                 .transCategories(courseRequestDto.getTransCategories())
                 .writer(writer)
                 .places(new ArrayList<>())
+        .build();
+    }
+
+    public static CourseMember courseMemberToEntity(Course course, Member member, ScrapFolder scrapFolder) {
+        return CourseMember.builder()
+                .course(course)
+                .member(member)
+                .scrapFolder(scrapFolder)
+        .build();
+    }
+
+    public static Declaration declarationToEntity(Course course, Member member) {
+        return Declaration.builder()
+                .course(course)
+                .member(member)
+        .build();
+    }
+
+    public static Category categoriesToEntity(FavCategoryRequestDto favCategoryRequestDto) {
+        return Category.builder()
+                .placeCategories(favCategoryRequestDto.getPlaceCategories())
+                .withCategories(favCategoryRequestDto.getWithCategories())
+                .transCategories(favCategoryRequestDto.getTransCategories())
         .build();
     }
 }
