@@ -5,7 +5,7 @@ import com.team6.sole.domain.home.entity.Gps;
 import com.team6.sole.domain.member.entity.Member;
 import lombok.*;
 
-import static com.team6.sole.domain.home.HomeService.makeShortenAddress;
+import static com.team6.sole.domain.home.utils.RegionUtils.makeShortenAddress;
 
 @Getter
 @Setter

@@ -7,6 +7,8 @@ import lombok.*;
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.team6.sole.domain.home.utils.RegionUtils.makeShortenAddress;
+
 @Getter
 @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -55,7 +57,7 @@ public class HomeResponseDto {
                 .thumbnailImg(course.getThumbnailUrl())
                 .title(course.getTitle())
                 .isLike(isLike)
-                .address(HomeService.makeShortenAddress(course.getPlaces().get(0).getGps().getAddress()))
+                .address(makeShortenAddress(course.getPlaces().get(0).getGps().getAddress()))
                 .duration(course.getDuration())
                 .distance(course.getDistance())
                 .categories(mergedSet)
