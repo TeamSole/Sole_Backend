@@ -42,7 +42,7 @@ public class FollowService {
     // 팔로잉하는 사람들 작성한 코스 보기
     @Transactional(readOnly = true)
     public List<FollowDetailResponseDto> showFollowingCourses(Member member) {
-        List<Member> followingMembers = showFollwingMembers(member.getSocialId());
+        List<Member> followingMembers = showFollowingMembers(member.getSocialId());
         List<Course> followingsCourses = courseRepository.findByWriterIn(followingMembers);
 
         return followingCoursesToDto(member, followingsCourses);
@@ -59,7 +59,7 @@ public class FollowService {
     }
 
     // 팔로잉하는 사람들 보기
-    public List<Member> showFollwingMembers(String socialId) {
+    public List<Member> showFollowingMembers(String socialId) {
         return followRepository.findByFromMember_SocialId(socialId).stream()
                 .map(Follow::getToMember)
                 .collect(Collectors.toList());
