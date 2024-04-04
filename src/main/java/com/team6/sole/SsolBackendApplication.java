@@ -24,4 +24,5 @@ public class SsolBackendApplication extends SpringBootServletInitializer {
 		SpringApplication.run(SsolBackendApplication.class, args);
 	}
 
+	System.out.println("성공");
 }
