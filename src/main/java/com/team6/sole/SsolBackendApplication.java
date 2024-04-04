@@ -23,6 +23,4 @@ public class SsolBackendApplication extends SpringBootServletInitializer {
 	public static void main(String[] args) {
 		SpringApplication.run(SsolBackendApplication.class, args);
 	}
-
-	System.out.println("마이그레이션");
 }
