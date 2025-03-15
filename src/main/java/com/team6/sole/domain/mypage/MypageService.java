@@ -32,14 +32,17 @@ public class MypageService {
     @Transactional
     public MypageResponseDto modMypage(Member member, MultipartFile multipartFile, MypageRequestDto mypageRequestDto) {
         member.modMypage(
-                multipartFile == null
-                        ? member.getProfileImgUrl()
-                        : awsS3Service.uploadImage(multipartFile, "member"),
+                checkProfileImgUrl(member, multipartFile),
                 mypageRequestDto.getNickname(),
-                mypageRequestDto.getDescription()
-        ); /*Dirty Checking으로 save 없이 update 쿼리 실행..!*/
+                mypageRequestDto.getDescription()); /*Dirty Checking으로 save 없이 update 쿼리 실행..!*/
 
         return MypageResponseDto.of(member);
+    }
+
+    public String checkProfileImgUrl(Member member, MultipartFile multipartFile) {
+        return multipartFile == null
+            ? member.getProfileImgUrl()
+            : awsS3Service.uploadImage(multipartFile, "member");
     }
 
     // 알림 설정 조회
@@ -63,6 +66,11 @@ public class MypageService {
         List<Notification> notifications = notificationRepository
                 .findAllByReceiver(receiver, Sort.by(Sort.Direction.DESC, "createdAt"));
 
+        return makeNotificationsToDto(notifications);
+    }
+
+    // Entity to Dto
+    public List<NotHistoryResponseDto> makeNotificationsToDto(List<Notification> notifications) {
         return notifications.stream()
                 .map(NotHistoryResponseDto::of)
                 .collect(Collectors.toList());

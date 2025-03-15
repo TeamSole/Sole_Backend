@@ -1,5 +1,14 @@
 package com.team6.sole.domain.follow;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.team6.sole.domain.follow.dto.FollowDetailResponseDto;
 import com.team6.sole.domain.follow.dto.FollowInfoResponseDto;
 import com.team6.sole.domain.follow.dto.FollowResponseDto;
@@ -15,17 +24,9 @@ import com.team6.sole.domain.member.MemberRepository;
 import com.team6.sole.domain.member.entity.Member;
 import com.team6.sole.global.error.ErrorCode;
 import com.team6.sole.global.error.exception.BadRequestException;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -41,31 +42,40 @@ public class FollowService {
     // 팔로잉하는 사람들 작성한 코스 보기
     @Transactional(readOnly = true)
     public List<FollowDetailResponseDto> showFollowingCourses(Member member) {
-        List<Member> followings = followRepository.findByFromMember_SocialId(member.getSocialId()).stream()
-                .map(Follow::getToMember)
-                .collect(Collectors.toList());
+        List<Member> followingMembers = showFollowingMembers(member.getSocialId());
+        List<Course> followingsCourses = courseRepository.findByWriterIn(followingMembers);
 
-        List<Course> followingsCourses = courseRepository.findByWriterIn(followings);
+        return followingCoursesToDto(member, followingsCourses);
+    }
 
+    // Entity To Dto
+    public List<FollowDetailResponseDto> followingCoursesToDto(Member member, List<Course> followingsCourses) {
         return followingsCourses.stream()
                 .map(course -> FollowDetailResponseDto.of(
                         course.getWriter(),
-                        courseMemberRepository.existsByMemberAndCourse_CourseId(
-                                member,
-                                course.getCourseId()
-                        ),
+                        isCourseScrap(member, course.getCourseId()),
                         course))
                 .collect(Collectors.toList());
+    }
+
+    // 팔로잉하는 사람들 보기
+    public List<Member> showFollowingMembers(String socialId) {
+        return followRepository.findByFromMember_SocialId(socialId).stream()
+                .map(Follow::getToMember)
+                .collect(Collectors.toList());
+    }
+
+    // 팔로잉한 사람들의 코스들 중 스크랩한 코스(T/F)
+    public Boolean isCourseScrap(Member member, Long courseId) {
+        return courseMemberRepository.existsByMemberAndCourse_CourseId(member, courseId);
     }
 
     // 팔로잉 보기
     @Transactional(readOnly = true)
     public List<FollowResponseDto> showFollowings(Member member) {
-        List<Follow> followings = followRepository.findByFromMember_SocialId(member.getSocialId());
+        List<Follow> followingMembers = followRepository.findByFromMember_SocialId(member.getSocialId());
 
-        return followings.stream()
-                .map(FollowResponseDto::ofFollowing)
-                .collect(Collectors.toList());
+        return FollowResponseDto.of(followingMembers);
     }
 
     // 팔로워 보기
@@ -73,13 +83,23 @@ public class FollowService {
     public List<FollowResponseDto> showFollowers(Member member) {
         List<Follow> followers = followRepository.findByToMember_SocialId(member.getSocialId());
 
+        return followerCoursesToDto(member, followers);
+    }
+
+    // Entity To Dto
+    public List<FollowResponseDto> followerCoursesToDto(Member member, List<Follow> followers) {
         return followers.stream()
-                .map(follower -> FollowResponseDto.ofFollower(
+                .map(follower -> FollowResponseDto.of(
                         follower,
-                        followRepository.existsByFromMember_SocialIdAndToMember_SocialId(member.getSocialId(), follower.getFromMember().getSocialId())
-                                ? FollowStatus.FOLLOWING
-                                : FollowStatus.NOT_FOLLOW))
+                        isFollow(member, follower)))
                 .collect(Collectors.toList());
+    }
+
+    // 팔로워들의 팔로잉 여부
+    public FollowStatus isFollow(Member member, Follow follower) {
+        return followRepository.existsByFromMember_SocialIdAndToMember_SocialId(member.getSocialId(), follower.getFromMember().getSocialId())
+                ? FollowStatus.FOLLOWING
+                : FollowStatus.NOT_FOLLOW;
     }
 
     // 팔로잉 상세정보
@@ -88,35 +108,55 @@ public class FollowService {
         Member followInfoMember = memberRepository.findBySocialId(followInfoId)
                 .orElseThrow(() -> new BadRequestException(ErrorCode.MEMBER_NOT_FOUND));
 
-        FollowInfoResponseDto followInfoResponseDto = FollowInfoResponseDto.of(followInfoMember);
-
         // 인기 코스 set
-        followInfoResponseDto.setPopularCourse(
-                followInfoMember.getCourses().isEmpty()
-                        ? null
-                        : courseRepository.findAllByWriter(
-                                followInfoMember,
-                                Sort.by(Sort.Order.desc("scrapCount"),
-                                        Sort.Order.desc("createdAt"))).stream()
-                        .map(popular -> HomeResponseDto.of(
-                                popular,
-                                courseMemberRepository.existsByMemberAndCourse_CourseId(member, popular.getCourseId()),
-                                true))
-                        .collect(Collectors.toList())
-                        .get(0));
+        FollowInfoResponseDto followInfoResponseDto = FollowInfoResponseDto.of(followInfoMember);
+        followInfoResponseDto.setPopularCourse(isPopularCourse(followInfoMember));
 
         // 최근 코스들 set
         List<Course> courses = courseCustomRepository.findAllByWriter(courseId, followInfoMember);
-        boolean finalPage = courses.size() - 1 != -1 && courseCustomRepository.findAllByWriter(
-                courses.get(courses.size() - 1).getCourseId(),
-                followInfoMember).isEmpty();
-        followInfoResponseDto.setRecentCourses(courses.stream()
-                .map(recent -> HomeResponseDto.of(
-                        recent,
-                        courseMemberRepository.existsByMemberAndCourse_CourseId(member, recent.getCourseId()),
-                        finalPage))
-                .collect(Collectors.toList()));
+        followInfoResponseDto.setRecentCourses(showRecentCourses(courses, member, followInfoMember));
+
         return followInfoResponseDto;
+    }
+
+    // 최근 코스 모아보기
+    public List<HomeResponseDto> showRecentCourses(List<Course> courses, Member member, Member followInfoMember) {
+        return courses.stream()
+                .map(recent -> HomeResponseDto.of(
+                        recent, 
+                        isCourseScrap(member, recent.getCourseId()), 
+                        isFinalPage(courses, followInfoMember)))
+                .collect(Collectors.toList());
+    }
+
+    // 마지막 페이지 판별(TODO -> PageDTO 클래스 따로파서 static method로)
+    public Boolean isFinalPage(List<Course> courses, Member followInfoMember) {
+        return courses.size() - 1 != -1 
+                && courseCustomRepository.findAllByWriter(
+                        courses.get(courses.size() - 1).getCourseId(),
+                        followInfoMember).isEmpty();
+    }
+
+    // 인기 코스 존재여부 판별
+    public HomeResponseDto isPopularCourse(Member followInfoMember) {
+        return followInfoMember.getCourses().isEmpty()
+                ? null
+                : showPopularCourse(followInfoMember);
+    }
+
+    // 스크랩수 가장 높은 코스 보기
+    public HomeResponseDto showPopularCourse(Member followInfoMember) {
+        return showRecentCoursesSortByScrapCount(followInfoMember).stream()
+                .map(popular -> HomeResponseDto.of(popular, isCourseScrap(followInfoMember, popular.getCourseId()), false))
+                .collect(Collectors.toList()).get(0);
+    }
+
+    // 최근 코스 모아보기(스크랩수 내림차순)
+    public List<Course> showRecentCoursesSortByScrapCount(Member followInfoMember) {
+        return courseRepository.findAllByWriter(
+                followInfoMember,
+                Sort.by(Sort.Order.desc("scrapCount"),
+                        Sort.Order.desc("createdAt")));
     }
 
     // 팔로우 및 언팔로우
@@ -130,30 +170,40 @@ public class FollowService {
                 .findByFromMember_MemberIdAndToMember_MemberId(fromMember.getMemberId(), toMember.getMemberId());
 
         if (checkFollow.isPresent()) {
-            checkFollow.get().getFromMember().getFollowInfo().removeFollowing(); /*DirtyChecking*/
-            checkFollow.get().getToMember().getFollowInfo().removeFollower(); /*DirtyChecking*/
-
-            followRepository.deleteByFromMember_MemberIdAndToMember_MemberId(fromMember.getMemberId(), toMember.getMemberId());
+            removeFollowCount(checkFollow.get());
         } else {
-            Follow follow = Follow.builder()
-                    .fromMember(fromMember)
-                    .toMember(toMember)
-                    .build();
+            Follow follow = FollowResponseDto.followToEntity(fromMember, toMember);
             followRepository.save(follow);
 
-            fromMember.getFollowInfo().addFollowing(); /*DirtyChecking*/
-            toMember.getFollowInfo().addFollower(); /*DirtyChecking*/
-
-            //알림 이벤트 전송(fcm)
-            try {
-                applicationEventPublisher.publishEvent(new FollowEvent(fromMember, toMember));
-            } catch (Exception e) {
-                log.error("푸시 알림 전송에 실패했습니다 - {}", e.getMessage());
-            }
+            addFollowCount(fromMember, toMember);
+            publishFollowNotification(fromMember, toMember);
 
             return toMember.getNickname() + "님을 팔로우했습니다...!";
         }
 
         return checkFollow.get().getToMember().getNickname() + "님의 팔로우를 취소했습니다...!";
+    }
+
+    // 언팔로우(팔로워 - 1, 팔로잉 - 1)
+    public void removeFollowCount(Follow follow) {
+        follow.getFromMember().getFollowInfo().removeFollowing(); /*DirtyChecking*/
+        follow.getToMember().getFollowInfo().removeFollower(); /*DirtyChecking*/
+
+        followRepository.deleteByFromMember_MemberIdAndToMember_MemberId(follow.getFromMember().getMemberId(), follow.getToMember().getMemberId());
+    }
+
+    // 팔로우(팔로워 + 1, 팔로잉 + 1)
+    public void addFollowCount(Member fromMember, Member toMember) {
+        fromMember.getFollowInfo().addFollowing(); /*DirtyChecking*/
+        toMember.getFollowInfo().addFollower(); /*DirtyChecking*/
+    }
+
+    // 팔로우 알림 이벤트 전송
+    public void publishFollowNotification(Member fromMember, Member toMember) {
+        try {
+            applicationEventPublisher.publishEvent(new FollowEvent(fromMember, toMember));
+        } catch (Exception e) {
+            log.error("푸시 알림 전송에 실패했습니다 - {}", e.getMessage());
+        }
     }
 }

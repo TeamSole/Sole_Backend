@@ -1,4 +1,4 @@
-package com.team6.sole.domain.member.dto;
+package com.team6.sole.global.config.security.oauth.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -9,7 +9,7 @@ import lombok.ToString;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class KakaoUserDto {
+public class KakaoMemberDto {
     @JsonProperty("id")
     private String authenticationCode;
 

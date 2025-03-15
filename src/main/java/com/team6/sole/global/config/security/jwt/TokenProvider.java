@@ -35,6 +35,9 @@ import java.util.stream.Collectors;
 public class TokenProvider implements InitializingBean {
     private final RedisService redisService;
 
+    public static final String AUTHORIZATION = "Authorization";
+    public static final String BEARER = "Bearer ";
+
     private final Logger logger = LoggerFactory.getLogger(TokenProvider.class);
 
     /** 토큰 유효 시간 (ms) */

@@ -1,5 +1,6 @@
 package com.team6.sole.domain.home.entity;
 
+import com.team6.sole.domain.home.dto.PlaceUpdateRequestDto;
 import com.team6.sole.global.config.entity.BaseTimeEntity;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -32,10 +33,10 @@ public class Place extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private Course course;
 
-    public void modPlace(String placeName, int duration, String description, Gps gps) {
-        this.placeName = placeName;
-        this.duration = duration;
-        this.description = description;
+    public void modPlace(PlaceUpdateRequestDto placeUpdateRequestDto, Gps gps) {
+        this.placeName = placeUpdateRequestDto.getPlaceName();
+        this.duration = placeUpdateRequestDto.getDuration();
+        this.description = placeUpdateRequestDto.getDescription();
         this.gps = gps;
     }
 

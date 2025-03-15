@@ -35,14 +35,14 @@ public class FollowDetailResponseDto {
     }
 
     public static FollowDetailResponseDto of(Member toMember, boolean isLike, Course course) {
-        return FollowDetailResponseDto.builder()
-                .courseId(course.getCourseId())
-                .profileImg(toMember.getProfileImgUrl())
-                .nickname(toMember.getNickname())
-                .isLike(isLike)
-                .thumbnailImg(course.getThumbnailUrl())
-                .title(course.getTitle())
-                .description(course.getDescription())
-                .build();
+      return FollowDetailResponseDto.builder()
+              .courseId(course.getCourseId())
+              .profileImg(toMember.getProfileImgUrl())
+              .nickname(toMember.getNickname())
+              .isLike(isLike)
+              .thumbnailImg(course.getThumbnailUrl())
+              .title(course.getTitle())
+              .description(course.getDescription())
+              .build();
     }
-}
+} 
