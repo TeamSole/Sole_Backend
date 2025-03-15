@@ -34,23 +34,23 @@ public class NoticeService {
     // 공지사항 등록
     @Transactional
     public NoticeResponseDto makeNotice(Member writer, NoticeRequestDto noticeRequestDto) {
-        Notice notice = Notice.builder()
-                .title(noticeRequestDto.getTitle())
-                .content(noticeRequestDto.getContent())
-                .writer(writer)
-                .build();
+        Notice notice = NoticeRequestDto.noticeToEntity(writer, noticeRequestDto);
         noticeRepository.save(notice);
 
         List<Member> receivers = memberRepository.findAllByRoleAndNotificationInfo_ActivityNotTrue(Role.ROLE_USER);
 
-        //알림 이벤트 전송(fcm)
+        publishNoticeNotification(receivers, noticeRequestDto);
+
+        return NoticeResponseDto.of(notice);
+    }
+
+    // 공지사항 알림 이벤트 전송
+    public void publishNoticeNotification(List<Member> receivers, NoticeRequestDto noticeRequestDto) {
         try {
             applicationEventPublisher.publishEvent(new NoticeEvent(receivers, noticeRequestDto));
         } catch (Exception e) {
             log.error("푸시 알림 전송에 실패했습니다 - {}", e.getMessage());
         }
-
-        return NoticeResponseDto.of(notice);
     }
     
     // 공지사항 조회
@@ -59,6 +59,11 @@ public class NoticeService {
     public List<NoticeResponseDto> showNotices() {
         List<Notice> notices = noticeRepository.findAll();
         
+        return makeNoticesToDto(notices);
+    }
+
+    // Entity To Dto
+    public List<NoticeResponseDto> makeNoticesToDto(List<Notice> notices) {
         return notices.stream()
                 .map(NoticeResponseDto::of)
                 .collect(Collectors.toList());

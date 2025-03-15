@@ -1,5 +1,6 @@
 package com.team6.sole.domain.home.entity;
 
+import com.team6.sole.domain.home.dto.CourseUpdateRequestDto;
 import com.team6.sole.domain.home.entity.relation.CourseMember;
 import com.team6.sole.domain.home.model.PlaceCategory;
 import com.team6.sole.domain.home.model.Region;
@@ -79,20 +80,16 @@ public class Course extends BaseTimeEntity {
         this.scrapCount--;
     }
 
-    public void modCourse(String title, Date startDate, int duration, double distance, Region region,
-                          Set<PlaceCategory> placeCategories,
-                          Set<WithCategory> withCategories,
-                          Set<TransCategory> transCategories,
-                          String description) {
-        this.title = title;
+    public void modCourse(CourseUpdateRequestDto courseUpdateRequestDto, Date startDate, int totalDuration, double totalPlaceDistance, Region region) {
+        this.title = courseUpdateRequestDto.getTitle();
         this.startDate = startDate;
-        this.duration = duration;
-        this.distance = distance;
+        this.duration = totalDuration;
+        this.distance = totalPlaceDistance;
         this.region = region;
-        this.placeCategories = placeCategories;
-        this.withCategories = withCategories;
-        this.transCategories = transCategories;
-        this.description = description;
+        this.placeCategories = courseUpdateRequestDto.getPlaceCategories();
+        this.withCategories = courseUpdateRequestDto.getWithCategories();
+        this.transCategories = courseUpdateRequestDto.getTransCategories();
+        this.description = courseUpdateRequestDto.getDescription();
     }
 
     public void modThumbnailImg(String thumbnailUrl) {

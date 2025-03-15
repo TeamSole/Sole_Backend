@@ -1,5 +1,8 @@
 package com.team6.sole.domain.notice.dto;
 
+import com.team6.sole.domain.member.entity.Member;
+import com.team6.sole.domain.notice.entity.Notice;
+
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -15,4 +18,12 @@ public class NoticeRequestDto {
 
     @ApiModelProperty(value = "공지사항 내용", example = "우리가 드디어 오픈했어요!!")
     private String content;
+
+    public static Notice noticeToEntity(Member writer, NoticeRequestDto noticeRequestDto) {
+        return Notice.builder()
+            .title(noticeRequestDto.getTitle())
+            .content(noticeRequestDto.getContent())
+            .writer(writer)
+        .build();
+    }
 }

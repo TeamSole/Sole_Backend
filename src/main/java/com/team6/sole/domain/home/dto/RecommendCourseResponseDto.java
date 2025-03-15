@@ -1,9 +1,12 @@
 package com.team6.sole.domain.home.dto;
 
 import com.team6.sole.domain.home.entity.Course;
+
 import lombok.*;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -28,5 +31,11 @@ public class RecommendCourseResponseDto implements Serializable {
                 .courseName(course.getTitle())
                 .thumbnailImg(course.getThumbnailUrl())
                 .build();
+    }
+
+    public static List<RecommendCourseResponseDto> of(List<Course> recommendCourses) {
+        return recommendCourses.stream()
+            .map(RecommendCourseResponseDto::of)
+            .collect(Collectors.toList());
     }
 }

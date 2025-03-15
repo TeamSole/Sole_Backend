@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.team6.sole.domain.home.HomeService.makeShortenAddress;
+import static com.team6.sole.domain.home.utils.RegionUtils.makeShortenAddress;
 import static com.team6.sole.infra.direction.DirectionService.calculateDistance;
 
 @Getter

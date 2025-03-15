@@ -43,12 +43,12 @@ public class FollowInfoResponseDto {
 
     public static FollowInfoResponseDto of(Member toMember) {
         return FollowInfoResponseDto.builder()
-                .profileImg(toMember.getProfileImgUrl())
-                .nickname(toMember.getNickname())
-                .followStatus(FollowStatus.FOLLOWING)
-                .followerCount(toMember.getFollowInfo().getFollower())
-                .followingCount(toMember.getFollowInfo().getFollowing())
-                .description(toMember.getDescription())
-                .build();
+            .profileImg(toMember.getProfileImgUrl())
+            .nickname(toMember.getNickname())
+            .followStatus(FollowStatus.FOLLOWING)
+            .followerCount(toMember.getFollowInfo().getFollower())
+            .followingCount(toMember.getFollowInfo().getFollowing())
+            .description(toMember.getDescription())
+            .build();
     }
 }

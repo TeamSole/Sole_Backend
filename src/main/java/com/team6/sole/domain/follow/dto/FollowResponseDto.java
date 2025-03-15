@@ -3,7 +3,13 @@ package com.team6.sole.domain.follow.dto;
 import com.team6.sole.domain.follow.entity.Follow;
 import com.team6.sole.domain.follow.model.FollowStatus;
 import com.team6.sole.domain.member.dto.MemberResponseDto;
+import com.team6.sole.domain.member.entity.Member;
+
 import lombok.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 @Getter
@@ -31,7 +37,7 @@ public class FollowResponseDto {
         this.followingCount = followingCount;
     }
 
-    public static FollowResponseDto ofFollowing(Follow follow) {
+    public static FollowResponseDto of(Follow follow) {
         return FollowResponseDto.builder()
                 .followId(follow.getFollowId())
                 .member(MemberResponseDto.of(follow.getToMember()))
@@ -41,7 +47,7 @@ public class FollowResponseDto {
                 .build();
     }
 
-    public static FollowResponseDto ofFollower(Follow follow, FollowStatus followStatus) {
+    public static FollowResponseDto of(Follow follow, FollowStatus followStatus) {
         return FollowResponseDto.builder()
                 .followId(follow.getFollowId())
                 .member(MemberResponseDto.of(follow.getFromMember()))
@@ -49,5 +55,18 @@ public class FollowResponseDto {
                 .followerCount(follow.getFromMember().getFollowInfo().getFollower())
                 .followingCount(follow.getFromMember().getFollowInfo().getFollowing())
                 .build();
+    }
+
+    public static List<FollowResponseDto> of(List<Follow> followings) {
+        return followings.stream()
+                .map(FollowResponseDto::of)
+                .collect(Collectors.toList());
+    }
+
+    public static Follow followToEntity(Member fromMember, Member toMember) {
+        return Follow.builder()
+            .fromMember(fromMember)
+            .toMember(toMember)
+            .build();
     }
 }
